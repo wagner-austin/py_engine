@@ -1,28 +1,23 @@
 # FileName: universal_layers.py
-# version: 1.1
+# version: 1.1 (modified)
 # Summary: Aggregates universal layers for scenes by importing individual layer modules.
-#          Now returns persistent (singleton) layer instances so that effects like the rain do not reset on scene changes.
+#          Now returns new instances of layers based on the current font/scaling.
 # Tags: layers, universal, modular, persistent
+
 from art_layers import StarArtLayer, BackGroundArtLayer
 from effect_layers import RainEffectLayer
 from instruction_layer import InstructionLayer
 from border_layer import BorderLayer
 
-_universal_layers = None
-
 def get_universal_layers(font):
     """
-    Returns a persistent list of universal layer instances.
-    This ensures that effects such as the rain (in RainEffectLayer) maintain their state
-    across scene transitions.
+    Returns a list of universal layer instances based on the current font.
+    Note: Previously cached as a singleton; now returning new instances to reflect updated settings.
     """
-    global _universal_layers
-    if _universal_layers is None:
-        _universal_layers = [
-            StarArtLayer(font),       # z=0: Star art background
-            RainEffectLayer(),        # z=1: Rain effect
-           BackGroundArtLayer(font),     # z=2: Background art foreground
-            InstructionLayer(font),   # z=3: On-screen instructions
-            BorderLayer()             # z=5: Border drawn on top
-        ]
-    return _universal_layers
+    return [
+        StarArtLayer(font),         # z=0: Star art background
+        RainEffectLayer(),          # z=1: Rain effect
+        BackGroundArtLayer(font),   # z=2: Background art foreground
+        InstructionLayer(font),     # z=3: On-screen instructions
+        BorderLayer()               # z=5: Border drawn on top
+    ]

@@ -1,12 +1,12 @@
 # FileName: test_scene.py
-# version: 1.1
+# version: 1.1 (modified)
 # Summary: Test scene to confirm that the universal layered system and scene switching work.
 #          Uses universal layers along with a custom TestLayer for scene-specific content.
 # Tags: test, scene, layers, modular
 
 import pygame
 from base_scene import BaseScene
-import config
+import config  # Now using config.config
 from universal_layers import get_universal_layers
 
 class TestScene(BaseScene):
@@ -16,13 +16,10 @@ class TestScene(BaseScene):
         self.font = font
         # Combine universal layers with a TestLayer.
         self.layers = get_universal_layers(font) + [TestLayer(font)]
-
+    
     def on_input(self, event):
-        # Forward input events to the top-most layer that supports input.
-        for layer in sorted(self.layers, key=lambda l: l.z, reverse=True):
-            if hasattr(layer, "on_input"):
-                layer.on_input(event)
-                break
+        # Forward input events using the common helper.
+        self.forward_input(event)
 
 class TestLayer:
     def __init__(self, font):
@@ -37,7 +34,7 @@ class TestLayer:
         # Draw test scene text.
         text = "TEST SCENE"
         text_surface = self.font.render(text, True, (255, 255, 255))
-        text_rect = text_surface.get_rect(center=(config.SCREEN_WIDTH // 2, config.SCREEN_HEIGHT // 2))
+        text_rect = text_surface.get_rect(center=(config.config.screen_width // 2, config.config.screen_height // 2))
         screen.blit(text_surface, text_rect)
 
     def on_input(self, event):
