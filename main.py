@@ -1,15 +1,18 @@
 # FileName: main.py
-# version: 1.2.3 (modified to work with new config structure)
-# Summary: Main entry point for the application. Initializes pygame, updates configuration dimensions,
-#          sets up the scene manager and scenes, and runs the main loop.
-# Tags: main, initialization, scene management, modular, layered
+# version: 1.3
+# Summary: Main entry point for the application. Initializes pygame, updates configuration,
+#          sets up managers (InputManager, UIManager, LayerManager, SceneManager), and runs the main loop.
+# Tags: main, initialization, dependency injection, modular
 
 import pygame
 import sys
-import config  # Now using config.config for configuration values.
+import config  # Using config.config
 from scene_manager import SceneManager
 from scenes.menu_scene import MenuScene
 from scenes.test_scene import TestScene
+from input_manager import InputManager
+from ui_manager import UIManager
+from layer_manager import LayerManager
 
 def main():
     pygame.init()
@@ -22,21 +25,26 @@ def main():
     # Set the display mode.
     screen = pygame.display.set_mode((initial_width, initial_height))
     
-    # Immediately update the global configuration dimensions and scale using the actual drawing surface size.
+    # Update configuration dimensions and scale.
     config.config.update_dimensions(*screen.get_size())
     
     pygame.display.set_caption("Retro Menu Demo")
-    # Create font based on updated configuration
+    # Create font based on updated configuration.
     font = pygame.font.SysFont(None, int(config.config.base_font_size * config.config.scale))
     clock = pygame.time.Clock()
 
     # Start text input for on-screen keyboards.
     pygame.key.start_text_input()
 
-    scene_manager = SceneManager()
+    # Create managers using dependency injection.
+    input_manager = InputManager()
+    ui_manager = UIManager()       # Available for UI elements.
+    layer_manager = LayerManager() # Available for managing scene layers.
+    scene_manager = SceneManager(config.config, input_manager)
+
     # Create and register scenes.
-    menu_scene = MenuScene(scene_manager, font)
-    test_scene = TestScene(scene_manager, font)
+    menu_scene = MenuScene(scene_manager, font, config.config)
+    test_scene = TestScene(scene_manager, font, config.config)
     scene_manager.add_scene("menu", menu_scene)
     scene_manager.add_scene("test", test_scene)
     
@@ -45,10 +53,8 @@ def main():
     
     running = True
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            scene_manager.handle_event(event)
+        # Process input events through the InputManager.
+        input_manager.process_events()
     
         scene_manager.update()
         scene_manager.draw(screen)
