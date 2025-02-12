@@ -1,5 +1,5 @@
 # File: art_layers.py
-# Version: 1.1 (modified)
+# Version: 1.2 (modified)
 # Summary: Provides art layers for universal background and foreground art.
 #          Includes a helper function to stretch ASCII art lines horizontally.
 # Tags: layers, art, ascii, modular
@@ -8,6 +8,10 @@ import pygame
 import math
 from art_assets import STAR_ART, BACKGROUND_ART
 from base_layer import BaseLayer
+
+# Layout Constants for Art Layers
+STAR_ART_MARGIN_FACTOR = 20
+BACKGROUND_ART_VERTICAL_POSITION_FACTOR = 0.5
 
 def stretch_line(line, font, target_width):
     """Inserts extra spaces between characters to stretch the line horizontally."""
@@ -36,9 +40,8 @@ class StarArtLayer(BaseLayer):
         pass
 
     def draw(self, screen):
-        # Stretch horizontally using stretch_line and distribute vertically
-        top_margin = int(20 * self.config.scale)
-        bottom_margin = int(20 * self.config.scale)
+        top_margin = int(STAR_ART_MARGIN_FACTOR * self.config.scale)
+        bottom_margin = int(STAR_ART_MARGIN_FACTOR * self.config.scale)
         available_height = self.config.screen_height - top_margin - bottom_margin
         num_lines = len(self.art)
         spacing = available_height / (num_lines - 1) if num_lines > 1 else available_height
@@ -63,8 +66,7 @@ class BackGroundArtLayer(BaseLayer):
         pass
 
     def draw(self, screen):
-        # Draw background art centered horizontally in the lower half of the screen.
-        y = int(self.config.screen_height * 0.5)
+        y = int(self.config.screen_height * BACKGROUND_ART_VERTICAL_POSITION_FACTOR)
         for line in self.art:
             text_surface = self.font.render(line, True, (100, 255, 100))
             text_rect = text_surface.get_rect(

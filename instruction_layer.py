@@ -1,10 +1,14 @@
 # File: instruction_layer.py
-# Version: 1.1 (modified)
+# Version: 1.2 (modified)
 # Summary: Provides the instruction layer that displays on-screen instructions.
 # Tags: layers, instructions, UI, modular
 
 import pygame
 from base_layer import BaseLayer
+
+# Layout Constants
+INSTRUCTION_LEFT_MARGIN_FACTOR = 20
+INSTRUCTION_BOTTOM_MARGIN_FACTOR = 40
 
 class InstructionLayer(BaseLayer):
     def __init__(self, font, config):
@@ -22,7 +26,7 @@ class InstructionLayer(BaseLayer):
         screen.blit(
             text_surface,
             (
-                int(20 * self.config.scale),
-                self.config.screen_height - int(40 * self.config.scale),
+                int(INSTRUCTION_LEFT_MARGIN_FACTOR * self.config.scale),
+                self.config.screen_height - int(INSTRUCTION_BOTTOM_MARGIN_FACTOR * self.config.scale),
             ),
         )

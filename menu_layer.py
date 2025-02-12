@@ -1,11 +1,18 @@
 # File: menu_layer.py
-# Version: 1.1 (modified)
+# Version: 1.2 (modified)
 # Summary: Provides the interactive menu layer (title and buttons) for the main menu.
 # Tags: layers, menu, UI, modular
 
 import pygame
 from ui_manager import Button
 from base_layer import BaseLayer
+
+# Layout Constants
+BUTTON_WIDTH_FACTOR = 300  # Relative to config.scale
+BUTTON_HEIGHT_FACTOR = 70
+BUTTON_MARGIN_FACTOR = 30
+BUTTON_START_Y_FACTOR = 150
+TITLE_Y_OFFSET = 40
 
 class MenuLayer(BaseLayer):
     def __init__(self, scene_manager, font, menu_items, config):
@@ -21,10 +28,10 @@ class MenuLayer(BaseLayer):
         self.create_buttons()
 
     def create_buttons(self):
-        button_width = int(300 * self.config.scale)
-        button_height = int(70 * self.config.scale)
-        margin = int(30 * self.config.scale)
-        start_y = int(150 * self.config.scale)
+        button_width = int(BUTTON_WIDTH_FACTOR * self.config.scale)
+        button_height = int(BUTTON_HEIGHT_FACTOR * self.config.scale)
+        margin = int(BUTTON_MARGIN_FACTOR * self.config.scale)
+        start_y = int(BUTTON_START_Y_FACTOR * self.config.scale)
         x = (self.config.screen_width - button_width) // 2
         self.buttons = []
         for i, (label, scene_key) in enumerate(self.menu_items):
@@ -64,7 +71,7 @@ class MenuLayer(BaseLayer):
             title_text, True, self.config.theme["title_color"]
         )
         title_x = (self.config.screen_width - title_surface.get_width()) // 2
-        screen.blit(title_surface, (title_x, int(40 * self.config.scale)))
+        screen.blit(title_surface, (title_x, int(TITLE_Y_OFFSET * self.config.scale)))
         for i, button in enumerate(self.buttons):
             selected = i == self.selected_index
             button.draw(screen, selected)

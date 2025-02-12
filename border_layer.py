@@ -1,11 +1,14 @@
 # File: border_layer.py
-# Version: 1.2 (modified)
+# Version: 1.3 (modified)
 # Summary: Provides the border layer that draws a border around the screen. The border is drawn fully inside
 #          the screen bounds so that no edge is clipped.
 # Tags: layers, border, UI, modular
 
 import pygame
 from base_layer import BaseLayer
+
+# Layout Constant
+BORDER_THICKNESS_FACTOR = 4
 
 class BorderLayer(BaseLayer):
     def __init__(self, config):
@@ -17,8 +20,7 @@ class BorderLayer(BaseLayer):
         pass
 
     def draw(self, screen):
-        # Dynamically compute thickness based on current scale.
-        thickness = int(4 * self.config.scale)
+        thickness = int(BORDER_THICKNESS_FACTOR * self.config.scale)
         pygame.draw.rect(
             screen,
             self.border_color,
