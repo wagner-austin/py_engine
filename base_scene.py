@@ -1,33 +1,35 @@
-# FileName: base_scene.py
-# version: 2.2 (modified)
+# File: base_scene.py
+# Version: 2.3 (modified)
 # Summary: Base scene class providing common functionality and input handling for all scenes.
 #          Supports a layered system and clears the screen before drawing.
+#          Now accepts a config instance and font as dependencies, and automatically adds universal layers.
 # Tags: scene, base, modular, input handling
 
 import pygame
-import config  # Now using config.config
+from layer_manager import LayerManager
+from universal_layers import get_universal_layers
 
 class BaseScene:
-    def __init__(self, name):
+    def __init__(self, name, config, font, extra_layers=None):
         self.name = name
-        # List of layers (each must have a 'z' attribute and update/draw methods).
-        self.layers = []
+        self.config = config
+        self.font = font
+        self.layer_manager = LayerManager()
+        # Add universal layers
+        for layer in get_universal_layers(font, config):
+            self.layer_manager.add_layer(layer)
+        # Add any extra layers provided by the subclass
+        if extra_layers:
+            for layer in extra_layers:
+                self.layer_manager.add_layer(layer)
 
     def handle_event(self, event):
-        # Common input: restart text input on mouse click.
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pygame.key.start_text_input()
         # Delegate scene-specific input.
         self.on_input(event)
 
     def on_input(self, event):
         """Override in subclasses for scene-specific input handling.
-           Legacy duplicate implementation below is now replaced:
-        
-        # for layer in sorted(self.layers, key=lambda l: l.z, reverse=True):
-        #     if hasattr(layer, "on_input"):
-        #         layer.on_input(event)
-        #         break
+        Default behavior is to forward the event to the highest z-index layer that implements on_input.
         """
         self.forward_input(event)
 
@@ -35,26 +37,22 @@ class BaseScene:
         """
         Forwards the input event to the highest z-index layer that implements on_input.
         """
-        for layer in sorted(self.layers, key=lambda l: l.z, reverse=True):
+        for layer in self.layer_manager.get_sorted_layers(reverse=True):
             if hasattr(layer, "on_input"):
                 layer.on_input(event)
                 break
 
     def update(self):
-        # Update all layers.
-        for layer in self.layers:
-            if hasattr(layer, "update"):
-                layer.update()
+        self.layer_manager.update()
 
     def draw(self, screen):
-        # Clear the screen using a scene-specific background if set, else use the universal background.
-        bg_color = getattr(self, "background_color", config.config.theme["background_color"])
+        # Use the config's theme for background color
+        bg_color = self.config.theme.get("background_color", (0, 0, 0))
         screen.fill(bg_color)
-        # Draw layers sorted by their z-index.
-        for layer in sorted(self.layers, key=lambda l: l.z):
-            if hasattr(layer, "draw"):
-                layer.draw(screen)
+        self.layer_manager.draw(screen)
 
     def on_enter(self):
-        """Called when the scene becomes active."""
-        pygame.key.start_text_input()
+        """Called when the scene becomes active.
+        (Text input is now centrally initialized in main().)
+        """
+        pass

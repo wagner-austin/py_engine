@@ -1,13 +1,13 @@
-# FileName: art_layers.py
-# version: 1.0 (modified)
+# File: art_layers.py
+# Version: 1.1 (modified)
 # Summary: Provides art layers for universal background and foreground art.
 #          Includes a helper function to stretch ASCII art lines horizontally.
 # Tags: layers, art, ascii, modular
 
 import pygame
 import math
-import config
 from art_assets import STAR_ART, BACKGROUND_ART
+from base_layer import BaseLayer
 
 def stretch_line(line, font, target_width):
     """Inserts extra spaces between characters to stretch the line horizontally."""
@@ -24,10 +24,11 @@ def stretch_line(line, font, target_width):
         new_line += " " * extra_spaces + char
     return new_line
 
-class StarArtLayer:
-    def __init__(self, font):
+class StarArtLayer(BaseLayer):
+    def __init__(self, font, config):
         self.z = 0
         self.font = font
+        self.config = config
         self.art = STAR_ART
         self.line_height = self.font.get_height()
 
@@ -36,22 +37,25 @@ class StarArtLayer:
 
     def draw(self, screen):
         # Stretch horizontally using stretch_line and distribute vertically
-        top_margin = int(20 * config.config.scale)
-        bottom_margin = int(20 * config.config.scale)
-        available_height = config.config.screen_height - top_margin - bottom_margin
+        top_margin = int(20 * self.config.scale)
+        bottom_margin = int(20 * self.config.scale)
+        available_height = self.config.screen_height - top_margin - bottom_margin
         num_lines = len(self.art)
         spacing = available_height / (num_lines - 1) if num_lines > 1 else available_height
         for i, line in enumerate(self.art):
-            stretched_line = stretch_line(line, self.font, config.config.screen_width)
+            stretched_line = stretch_line(line, self.font, self.config.screen_width)
             y = top_margin + i * spacing
             text_surface = self.font.render(stretched_line, True, (150, 150, 150))
-            text_rect = text_surface.get_rect(center=(config.config.screen_width // 2, int(y)))
+            text_rect = text_surface.get_rect(
+                center=(self.config.screen_width // 2, int(y))
+            )
             screen.blit(text_surface, text_rect)
 
-class BackGroundArtLayer:
-    def __init__(self, font):
+class BackGroundArtLayer(BaseLayer):
+    def __init__(self, font, config):
         self.z = 2
         self.font = font
+        self.config = config
         self.art = BACKGROUND_ART
         self.line_height = self.font.get_height()
 
@@ -60,9 +64,11 @@ class BackGroundArtLayer:
 
     def draw(self, screen):
         # Draw background art centered horizontally in the lower half of the screen.
-        y = int(config.config.screen_height * 0.5)
+        y = int(self.config.screen_height * 0.5)
         for line in self.art:
             text_surface = self.font.render(line, True, (100, 255, 100))
-            text_rect = text_surface.get_rect(center=(config.config.screen_width // 2, y))
+            text_rect = text_surface.get_rect(
+                center=(self.config.screen_width // 2, y)
+            )
             screen.blit(text_surface, text_rect)
             y += self.line_height

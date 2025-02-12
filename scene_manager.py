@@ -1,5 +1,5 @@
-# FileName: scene_manager.py
-# version: 2.2 (modified)
+# File: scene_manager.py
+# Version: 2.2 (modified)
 # Summary: Scene manager for handling scene transitions and centralized input.
 #          Now uses dependency injection (receiving config and InputManager) and registers as an input handler.
 # Tags: scene management, modular, input, dependency injection
@@ -40,7 +40,3 @@ class SceneManager:
     def on_global_input(self, event):
         # When a global input occurs (e.g., Q or Escape), return to the main menu.
         self.set_scene("menu")
-
-    # Legacy handle_event removed.
-    # def handle_event(self, event):
-    #     pass

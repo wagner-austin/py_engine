@@ -1,5 +1,5 @@
-# FileName: art_assets.py
-# version: 1.0
+# File: art_assets.py
+# Version: 1.0
 # Summary: Contains ASCII art assets used by the application. Modify these arrays to update the artwork.
 # Tags: art, ascii, assets, retro
 
@@ -54,5 +54,3 @@ STAR_ART = [
 ]
 
 BACKGROUND_ART = []
-
-#
