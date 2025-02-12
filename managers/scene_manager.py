@@ -1,13 +1,14 @@
 """
 scene_manager.py - Scene manager for handling scene transitions and centralized input.
 
-Version: 1.0
+Version: 1.0 (updated with refined type hints)
 """
 
 import pygame
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 from config import Config
-from input_manager import InputManager
+from managers.input_manager import InputManager
+from scenes.base_scene import BaseScene
 
 class SceneManager:
     """
@@ -24,12 +25,12 @@ class SceneManager:
         """
         self.config: Config = config
         self.input_manager: InputManager = input_manager
-        self.scenes: Dict[str, Any] = {}
-        self.current_scene: Optional[Any] = None
+        self.scenes: Dict[str, BaseScene] = {}
+        self.current_scene: Optional[BaseScene] = None
         # Register self with the input manager.
         self.input_manager.register_handler(self)
 
-    def add_scene(self, name: str, scene: Any) -> None:
+    def add_scene(self, name: str, scene: BaseScene) -> None:
         """
         Adds a scene to the manager (scenes are not automatically registered).
 
@@ -39,7 +40,7 @@ class SceneManager:
         """
         self.scenes[name] = scene
 
-    def _register_scene(self, scene: Any) -> None:
+    def _register_scene(self, scene: BaseScene) -> None:
         """
         Registers a scene with the input manager.
         If the scene has an on_enter() method, it is called before registration.
@@ -51,7 +52,7 @@ class SceneManager:
             scene.on_enter()
         self.input_manager.register_handler(scene)
 
-    def _unregister_scene(self, scene: Any) -> None:
+    def _unregister_scene(self, scene: BaseScene) -> None:
         """
         Unregisters a scene from the input manager.
 

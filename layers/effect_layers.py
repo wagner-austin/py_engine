@@ -1,16 +1,18 @@
 """
 effect_layers.py - Provides effect layers such as the rain effect.
 
-Version: 1.1
+Version: 1.1 (updated with centralized color constants)
 """
 
 import pygame
 import random
 from typing import Dict, List
-from base_layer import BaseLayer
-from layout_constants import LayerZIndex
+from .base_layer import BaseLayer
+from layout_constants import LayerZIndex, EffectColors
 from config import Config
+from plugins import register_effect
 
+@register_effect("rain_effect")
 class RainEffectLayer(BaseLayer):
     def __init__(self, config: Config) -> None:
         """
@@ -47,7 +49,7 @@ class RainEffectLayer(BaseLayer):
         Parameters:
             screen: The pygame Surface on which to draw the rain effect.
         """
-        color = (100, 100, 255)
+        color = EffectColors.RAIN_EFFECT
         for line in self.lines:
             start_pos = (int(line["x"]), int(line["y"]))
             end_pos = (int(line["x"]), int(line["y"] + line["length"]))

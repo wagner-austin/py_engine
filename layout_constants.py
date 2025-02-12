@@ -1,7 +1,7 @@
 """
 layout_constants.py - Contains layout and z-index constants for UI components and layers.
 
-Version: 1.1
+Version: 1.2 (updated with additional color constants)
 """
 
 from enum import IntEnum
@@ -21,6 +21,22 @@ class BorderLayout:
 class ArtLayout:
     STAR_MARGIN_FACTOR = 20
     BACKGROUND_VERTICAL_FACTOR = 0.5
+
+class ArtColors:
+    STAR_TEXT = (150, 150, 150)
+    BACKGROUND_TEXT = (100, 255, 100)
+
+class InstructionLayout:
+    # Base pixel margins (before scaling) for the instruction layer
+    LEFT_MARGIN_PX = 20
+    BOTTOM_MARGIN_PX = 40
+
+class MenuLayout:
+    # Debounce interval (in milliseconds) for menu navigation input
+    DEBOUNCE_INTERVAL_MS = 100
+
+class EffectColors:
+    RAIN_EFFECT = (100, 100, 255)
 
 class LayerZIndex(IntEnum):
     """

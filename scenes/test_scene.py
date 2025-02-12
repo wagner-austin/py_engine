@@ -2,18 +2,19 @@
 test_scene.py - Test scene to confirm that the universal layered system and scene switching work.
 Uses universal layers along with a custom TestLayer for scene-specific content.
 
-Version: 1.0
+Version: 1.0 (updated)
 """
 
+from plugins import register_scene
 import pygame
-from typing import Any
-from base_scene import BaseScene
-from base_layer import BaseLayer
+from .base_scene import BaseScene
+from layers.base_layer import BaseLayer
 from layout_constants import LayerZIndex
 from config import Config
-from layer_manager import LayerManager
-from universal_layers import UniversalLayerFactory
+from managers.layer_manager import LayerManager
+from layers.universal_layers import UniversalLayerFactory
 
+@register_scene("test")
 class TestScene(BaseScene):
     """
     Test scene to confirm that the universal layered system and scene switching work.
@@ -50,8 +51,11 @@ class TestLayer(BaseLayer):
         self.config: Config = config
         self.angle: int = 0
 
+    # Public Methods
     def update(self) -> None:
-        """Updates the layer by incrementing the angle for animation."""
+        """
+        Updates the layer by incrementing the angle for animation.
+        """
         self.angle = (self.angle + 2) % 360
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -59,7 +63,7 @@ class TestLayer(BaseLayer):
         Draws the test scene text onto the provided screen.
         
         Parameters:
-            screen: The pygame Surface on which to draw.
+            screen: The pygame Surface on which to draw the test scene.
         """
         text: str = "TEST SCENE"
         text_surface: pygame.Surface = self.font.render(text, True, (255, 255, 255))

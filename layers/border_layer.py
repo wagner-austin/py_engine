@@ -6,7 +6,7 @@ Version: 1.0
 
 import pygame
 from typing import Any
-from base_layer import BaseLayer
+from .base_layer import BaseLayer
 from layout_constants import BorderLayout, LayerZIndex
 from config import Config
 
@@ -24,7 +24,7 @@ class BorderLayer(BaseLayer):
         """
         self.z: int = LayerZIndex.BORDER
         self.config: Config = config
-        self.border_color: Any = self.config.theme["border_color"]
+        self.border_color = self.config.theme.border_color
 
     def update(self) -> None:
         """Updates the border layer. No dynamic behavior implemented."""

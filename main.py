@@ -2,18 +2,19 @@
 main.py - Main entry point for the application. Initializes pygame, updates configuration,
 sets up managers (InputManager, a shared LayerManager, and SceneManager), and runs the main loop.
 
-Version: 1.5
+Version: 1.5 (modified to use Play and Settings scenes)
 """
 
 import pygame
 import sys
 from config import Config
-from scene_manager import SceneManager
+from managers.scene_manager import SceneManager
 from scenes.menu_scene import MenuScene
-from scenes.test_scene import TestScene
-from input_manager import InputManager
-from layer_manager import LayerManager
-from universal_layers import UniversalLayerFactory
+from scenes.play_scene import PlayScene
+from scenes.settings_scene import SettingsScene
+from managers.input_manager import InputManager
+from managers.layer_manager import LayerManager
+from layers.universal_layers import UniversalLayerFactory
 
 def main() -> None:
     pygame.init()
@@ -41,16 +42,18 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     # Create managers using dependency injection.
-    input_manager: InputManager = InputManager()
-    layer_manager: LayerManager = LayerManager()
-    universal_factory: UniversalLayerFactory = UniversalLayerFactory()
-    scene_manager: SceneManager = SceneManager(config, input_manager)
+    input_manager = InputManager(config)
+    layer_manager = LayerManager()
+    universal_factory = UniversalLayerFactory()
+    scene_manager = SceneManager(config, input_manager)
 
     # Create and register scenes.
     menu_scene = MenuScene(scene_manager, font, config, layer_manager, universal_factory)
-    test_scene = TestScene(font, config, layer_manager, universal_factory)
+    play_scene = PlayScene(font, config, layer_manager, universal_factory)
+    settings_scene = SettingsScene(font, config, layer_manager, universal_factory)
     scene_manager.add_scene("menu", menu_scene)
-    scene_manager.add_scene("test", test_scene)
+    scene_manager.add_scene("play", play_scene)
+    scene_manager.add_scene("settings", settings_scene)
 
     # Start with the main menu.
     scene_manager.set_scene("menu")

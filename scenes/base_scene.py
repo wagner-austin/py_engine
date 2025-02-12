@@ -1,18 +1,27 @@
 """
 base_scene.py - Base scene class providing common functionality and input handling for all scenes.
 
-Version: 2.3
+Version: 2.3 (updated type hints for extra_layers)
 """
 
 import pygame
-from typing import Any, List, Optional
+from typing import List, Optional
 from config import Config
-from layer_manager import LayerManager
-from universal_layers import UniversalLayerFactory
-from base_layer import BaseLayer
+from managers.layer_manager import LayerManager
+from layers.universal_layers import UniversalLayerFactory
+from layers.base_layer import BaseLayer  # Imported for type hinting extra_layers
+from interfaces import IInputHandler
 
 class BaseScene:
-    def __init__(self, name: str, config: Config, font: pygame.font.Font, layer_manager: LayerManager, universal_factory: UniversalLayerFactory, extra_layers: Optional[List[Any]] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        config: Config,
+        font: pygame.font.Font,
+        layer_manager: LayerManager,
+        universal_factory: UniversalLayerFactory,
+        extra_layers: Optional[List[BaseLayer]] = None,  # Updated type hint from List[object] to List[BaseLayer]
+    ) -> None:
         """
         Initializes a BaseScene.
 
@@ -29,7 +38,7 @@ class BaseScene:
         self.font: pygame.font.Font = font
         self.layer_manager: LayerManager = layer_manager
         self.universal_factory: UniversalLayerFactory = universal_factory
-        self.extra_layers: List[Any] = extra_layers or []
+        self.extra_layers: List[BaseLayer] = extra_layers or []
 
     def populate_layers(self) -> None:
         """Clears the shared LayerManager and repopulates it with universal and scene-specific layers."""
@@ -46,7 +55,8 @@ class BaseScene:
         self.on_input(event)
 
     def on_input(self, event: pygame.event.Event) -> None:
-        """Override in subclasses for scene-specific input handling.
+        """
+        Override in subclasses for scene-specific input handling.
         Default behavior forwards the event to the highest z-index layer that implements on_input.
         """
         self.forward_input(event)
@@ -54,7 +64,7 @@ class BaseScene:
     def forward_input(self, event: pygame.event.Event) -> None:
         """Forwards the input event to the highest z-index layer that implements on_input."""
         for layer in self.layer_manager.get_sorted_layers(reverse=True):
-            if hasattr(layer, "on_input"):
+            if isinstance(layer, IInputHandler):
                 layer.on_input(event)
                 break
 
@@ -69,7 +79,7 @@ class BaseScene:
         Parameters:
             screen: The pygame Surface on which to draw.
         """
-        bg_color = self.config.theme.get("background_color", (0, 0, 0))
+        bg_color = self.config.theme.background_color
         screen.fill(bg_color)
         self.layer_manager.draw(screen)
 
