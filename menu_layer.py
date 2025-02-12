@@ -1,22 +1,30 @@
-# File: menu_layer.py
-# Version: 1.2 (modified)
-# Summary: Provides the interactive menu layer (title and buttons) for the main menu.
-# Tags: layers, menu, UI, modular
+"""
+menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
+
+Version: 2.6
+"""
 
 import pygame
 from ui_manager import Button
 from base_layer import BaseLayer
-
-# Layout Constants
-BUTTON_WIDTH_FACTOR = 300  # Relative to config.scale
-BUTTON_HEIGHT_FACTOR = 70
-BUTTON_MARGIN_FACTOR = 30
-BUTTON_START_Y_FACTOR = 150
-TITLE_Y_OFFSET = 40
+from layout_constants import ButtonLayout, TitleLayout, LayerZIndex
 
 class MenuLayer(BaseLayer):
+    """
+    The interactive menu layer that displays a title and buttons for scene selection.
+    """
+
     def __init__(self, scene_manager, font, menu_items, config):
-        self.z = 4
+        """
+        Initializes the MenuLayer with the given scene manager, font, menu items, and configuration.
+        
+        Parameters:
+            scene_manager: The manager responsible for scene transitions.
+            font: The pygame font to be used for rendering text.
+            menu_items: A list of tuples containing (label, scene_key) for each menu button.
+            config: The configuration object containing theme and scaling information.
+        """
+        self.z = LayerZIndex.MENU
         self.scene_manager = scene_manager
         self.font = font
         self.config = config
@@ -28,10 +36,14 @@ class MenuLayer(BaseLayer):
         self.create_buttons()
 
     def create_buttons(self):
-        button_width = int(BUTTON_WIDTH_FACTOR * self.config.scale)
-        button_height = int(BUTTON_HEIGHT_FACTOR * self.config.scale)
-        margin = int(BUTTON_MARGIN_FACTOR * self.config.scale)
-        start_y = int(BUTTON_START_Y_FACTOR * self.config.scale)
+        """
+        Creates and positions the buttons for the menu based on configuration and scaling factors.
+        Computes each scale value once and stores it in local variables.
+        """
+        button_width = self.config.scale_value(ButtonLayout.WIDTH_FACTOR)
+        button_height = self.config.scale_value(ButtonLayout.HEIGHT_FACTOR)
+        margin = self.config.scale_value(ButtonLayout.MARGIN_FACTOR)
+        start_y = self.config.scale_value(ButtonLayout.START_Y_FACTOR)
         x = (self.config.screen_width - button_width) // 2
         self.buttons = []
         for i, (label, scene_key) in enumerate(self.menu_items):
@@ -49,12 +61,23 @@ class MenuLayer(BaseLayer):
 
     def make_callback(self, scene_key):
         """
-        Helper function to create a callback that sets the scene.
-        Using a default argument to capture the current value of scene_key.
+        Creates a callback function that sets the scene based on the provided scene_key.
+        
+        Parameters:
+            scene_key: The key of the scene to switch to.
+        
+        Returns:
+            A lambda function that calls the scene manager's set_scene method with the captured scene_key.
         """
         return lambda sk=scene_key: self.scene_manager.set_scene(sk)
 
     def _process_navigation(self, key):
+        """
+        Processes keyboard navigation input to move between menu items or select an item.
+        
+        Parameters:
+            key: The key code from a KEYDOWN event.
+        """
         if key in (pygame.K_w,):
             self.selected_index = (self.selected_index - 1) % len(self.buttons)
         elif key in (pygame.K_s,):
@@ -63,15 +86,26 @@ class MenuLayer(BaseLayer):
             self.buttons[self.selected_index].callback()
 
     def update(self):
+        """
+        Updates the menu layer.
+        
+        Currently, no dynamic updates are implemented.
+        """
         pass
 
     def draw(self, screen):
+        """
+        Draws the menu title and buttons onto the provided screen.
+        
+        Parameters:
+            screen: The pygame Surface on which to draw the menu.
+        """
         title_text = "MAIN MENU"
         title_surface = self.font.render(
             title_text, True, self.config.theme["title_color"]
         )
         title_x = (self.config.screen_width - title_surface.get_width()) // 2
-        screen.blit(title_surface, (title_x, int(TITLE_Y_OFFSET * self.config.scale)))
+        screen.blit(title_surface, (title_x, self.config.scale_value(TitleLayout.Y_OFFSET)))
         for i, button in enumerate(self.buttons):
             selected = i == self.selected_index
             button.draw(screen, selected)
@@ -81,6 +115,12 @@ class MenuLayer(BaseLayer):
                 )
 
     def on_input(self, event):
+        """
+        Handles input events for menu navigation.
+        
+        Parameters:
+            event: A pygame event.
+        """
         current_time = pygame.time.get_ticks()
         if current_time - self.last_nav_time < self.debounce_interval:
             return

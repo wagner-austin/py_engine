@@ -1,8 +1,8 @@
-# File: layer_manager.py
-# Version: 1.2 (modified)
-# Summary: Provides a LayerManager for managing scene layers. It sorts, updates, and draws layers in order.
-#          The list of layers is sorted only when layers are added, removed, or explicitly marked as dirty.
-# Tags: layers, manager, modular
+"""
+layer_manager.py - Provides a LayerManager for managing scene layers.
+
+Version: 1.2
+"""
 
 class LayerManager:
     def __init__(self, layers=None):
@@ -25,10 +25,12 @@ class LayerManager:
             self._dirty = True
 
     def mark_dirty(self):
-        """
-        Mark the layer list as dirty.
-        Call this if a layer's z value is modified externally.
-        """
+        self._dirty = True
+
+    def clear(self):
+        """Clears all layers from the manager."""
+        self.layers = []
+        self._sorted_layers = []
         self._dirty = True
 
     def update(self):
@@ -42,9 +44,5 @@ class LayerManager:
             layer.draw(screen)
 
     def get_sorted_layers(self, reverse=False):
-        """
-        Returns the sorted list of layers.
-        If reverse is True, returns layers sorted in descending order of z.
-        """
         self._sort_layers()
         return self._sorted_layers[::-1] if reverse else self._sorted_layers

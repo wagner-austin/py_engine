@@ -1,7 +1,8 @@
-# File: art_assets.py
-# Version: 1.0
-# Summary: Contains ASCII art assets used by the application. Modify these arrays to update the artwork.
-# Tags: art, ascii, assets, retro
+"""
+art_assets.py - Contains ASCII art assets used by the application.
+
+Version: 1.0
+"""
 
 HEADER_ART = [
     "=== HEADER ART PLACEHOLDER ===",

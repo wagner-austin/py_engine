@@ -1,11 +1,10 @@
-# File: config.py
-# Version: 1.4 (modified)
-# Summary: Global configuration using a dataclass. Contains base resolution, FPS, font size, scale,
-#          default screen dimensions, and universal theme settings. Provides a method to update screen dimensions.
-# Tags: config, global, theme, scaling
+"""
+config.py - Global configuration using a dataclass.
+
+Version: 1.4
+"""
 
 from dataclasses import dataclass, field
-
 
 @dataclass
 class Config:
@@ -29,8 +28,13 @@ class Config:
         }
     )
 
-    def update_dimensions(self, width: int, height: int):
-        """Updates the screen dimensions and recalculates the scale."""
+    def update_dimensions(self, width: int, height: int) -> None:
+        """Updates the screen dimensions and recalculates the scale.
+
+        Parameters:
+            width: The new width of the screen.
+            height: The new height of the screen.
+        """
         self.screen_width = width
         self.screen_height = height
         self.scale = min(
@@ -38,6 +42,16 @@ class Config:
             self.screen_height / self.base_height
         )
 
+    def scale_value(self, base_value: int) -> int:
+        """Scales the provided base value using the current scale factor.
+
+        Parameters:
+            base_value: The base value to scale.
+
+        Returns:
+            The scaled integer value.
+        """
+        return int(base_value * self.scale)
 
 # Global configuration instance
 GLOBAL_CONFIG = Config()

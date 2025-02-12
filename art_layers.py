@@ -1,20 +1,28 @@
-# File: art_layers.py
-# Version: 1.2 (modified)
-# Summary: Provides art layers for universal background and foreground art.
-#          Includes a helper function to stretch ASCII art lines horizontally.
-# Tags: layers, art, ascii, modular
+"""
+art_layers.py - Provides art layers for universal background and foreground art.
+Includes a helper function to stretch ASCII art lines horizontally.
+
+Version: 1.0
+"""
 
 import pygame
 import math
 from art_assets import STAR_ART, BACKGROUND_ART
 from base_layer import BaseLayer
-
-# Layout Constants for Art Layers
-STAR_ART_MARGIN_FACTOR = 20
-BACKGROUND_ART_VERTICAL_POSITION_FACTOR = 0.5
+from layout_constants import ArtLayout, LayerZIndex
 
 def stretch_line(line, font, target_width):
-    """Inserts extra spaces between characters to stretch the line horizontally."""
+    """
+    Inserts extra spaces between characters to stretch the line horizontally.
+
+    Parameters:
+        line: The original string to stretch.
+        font: The pygame font used to measure text width.
+        target_width: The desired width in pixels.
+
+    Returns:
+        The stretched string.
+    """
     current_width = font.size(line)[0]
     if current_width >= target_width:
         return line
@@ -29,19 +37,37 @@ def stretch_line(line, font, target_width):
     return new_line
 
 class StarArtLayer(BaseLayer):
+    """
+    Layer for displaying star art in the background.
+    """
+
     def __init__(self, font, config):
-        self.z = 0
+        """
+        Initializes the StarArtLayer with the provided font and configuration.
+
+        Parameters:
+            font: The pygame font used for rendering.
+            config: The configuration object containing screen dimensions and scale.
+        """
+        self.z = LayerZIndex.STAR_ART
         self.font = font
         self.config = config
         self.art = STAR_ART
         self.line_height = self.font.get_height()
 
     def update(self):
+        """Updates the layer. No dynamic behavior implemented."""
         pass
 
     def draw(self, screen):
-        top_margin = int(STAR_ART_MARGIN_FACTOR * self.config.scale)
-        bottom_margin = int(STAR_ART_MARGIN_FACTOR * self.config.scale)
+        """
+        Draws the star art onto the provided screen.
+
+        Parameters:
+            screen: The pygame Surface on which to draw the star art.
+        """
+        top_margin = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
+        bottom_margin = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
         available_height = self.config.screen_height - top_margin - bottom_margin
         num_lines = len(self.art)
         spacing = available_height / (num_lines - 1) if num_lines > 1 else available_height
@@ -55,18 +81,36 @@ class StarArtLayer(BaseLayer):
             screen.blit(text_surface, text_rect)
 
 class BackGroundArtLayer(BaseLayer):
+    """
+    Layer for displaying background art in the foreground.
+    """
+
     def __init__(self, font, config):
-        self.z = 2
+        """
+        Initializes the BackGroundArtLayer with the provided font and configuration.
+
+        Parameters:
+            font: The pygame font used for rendering.
+            config: The configuration object containing screen dimensions and scale.
+        """
+        self.z = LayerZIndex.BACKGROUND_ART
         self.font = font
         self.config = config
         self.art = BACKGROUND_ART
         self.line_height = self.font.get_height()
 
     def update(self):
+        """Updates the layer. No dynamic behavior implemented."""
         pass
 
     def draw(self, screen):
-        y = int(self.config.screen_height * BACKGROUND_ART_VERTICAL_POSITION_FACTOR)
+        """
+        Draws the background art onto the provided screen.
+
+        Parameters:
+            screen: The pygame Surface on which to draw the background art.
+        """
+        y = int(self.config.screen_height * ArtLayout.BACKGROUND_VERTICAL_FACTOR)
         for line in self.art:
             text_surface = self.font.render(line, True, (100, 255, 100))
             text_rect = text_surface.get_rect(

@@ -1,15 +1,23 @@
-# File: effect_layers.py
-# Version: 1.1 (modified)
-# Summary: Provides effect layers such as the rain effect.
-# Tags: layers, effects, rain, modular
+"""
+effect_layers.py - Provides effect layers such as the rain effect.
+
+Version: 1.1
+"""
 
 import pygame
 import random
 from base_layer import BaseLayer
+from layout_constants import LayerZIndex
 
 class RainEffectLayer(BaseLayer):
     def __init__(self, config):
-        self.z = 1
+        """
+        Initializes the RainEffectLayer with the provided configuration.
+        
+        Parameters:
+            config: The configuration object containing screen dimensions and scale.
+        """
+        self.z = LayerZIndex.RAIN_EFFECT
         self.config = config
         self.lines = []
         self.num_lines = 50
@@ -17,18 +25,27 @@ class RainEffectLayer(BaseLayer):
         for _ in range(self.num_lines):
             x = random.uniform(0, self.config.screen_width)
             y = random.uniform(0, self.config.screen_height)
-            length = int(10 * self.config.scale)
+            length = self.config.scale_value(10)
             self.lines.append({"x": x, "y": y, "length": length})
 
     def update(self):
-        # Dynamically recalc speed based on current scale.
-        speed = int(5 * self.config.scale)
+        """
+        Updates the rain effect layer by moving each rain line.
+        Recalculates the speed dynamically based on the current scale.
+        """
+        speed = self.config.scale_value(5)
         for line in self.lines:
             line["y"] += speed
             if line["y"] > self.config.screen_height:
                 line["y"] = -line["length"]
 
     def draw(self, screen):
+        """
+        Draws the rain effect onto the provided screen.
+        
+        Parameters:
+            screen: The pygame Surface on which to draw the rain effect.
+        """
         color = (100, 100, 255)
         for line in self.lines:
             start_pos = (int(line["x"]), int(line["y"]))

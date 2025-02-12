@@ -1,9 +1,9 @@
-# File: main.py
-# Version: 1.5 (modified for touch keyboard support)
-# Summary: Main entry point for the application. Initializes pygame, updates configuration,
-#          sets up managers (InputManager, LayerManager, SceneManager), and runs the main loop.
-#          Now supports continuous text input checks and touch screen events to trigger the on-screen keyboard.
-# Tags: main, initialization, dependency injection, modular
+"""
+main.py - Main entry point for the application. Initializes pygame, updates configuration,
+sets up managers (InputManager, a shared LayerManager, and SceneManager), and runs the main loop.
+
+Version: 1.5
+"""
 
 import pygame
 import sys
@@ -13,6 +13,7 @@ from scenes.menu_scene import MenuScene
 from scenes.test_scene import TestScene
 from input_manager import InputManager
 from layer_manager import LayerManager
+from universal_layers import UniversalLayerFactory
 
 def main():
     pygame.init()
@@ -40,13 +41,14 @@ def main():
 
     # Create managers using dependency injection.
     input_manager = InputManager()
-    # Removed UIManager instantiation as it was unused.
-    layer_manager = LayerManager()  # Available for managing scene layers.
+    # Create a global LayerManager and a UniversalLayerFactory for managing layers.
+    layer_manager = LayerManager()
+    universal_factory = UniversalLayerFactory()
     scene_manager = SceneManager(GLOBAL_CONFIG, input_manager)
 
     # Create and register scenes.
-    menu_scene = MenuScene(scene_manager, font, GLOBAL_CONFIG)
-    test_scene = TestScene(scene_manager, font, GLOBAL_CONFIG)
+    menu_scene = MenuScene(scene_manager, font, GLOBAL_CONFIG, layer_manager, universal_factory)
+    test_scene = TestScene(font, GLOBAL_CONFIG, layer_manager, universal_factory)
     scene_manager.add_scene("menu", menu_scene)
     scene_manager.add_scene("test", test_scene)
 

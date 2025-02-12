@@ -1,9 +1,8 @@
-# File: input_manager.py
-# Version: 1.1 (modified for touch keyboard support)
-# Summary: Provides a dedicated InputManager for handling and dispatching input events.
-#          Listens for common events (like Q/Escape to return to the main menu), touchscreen clicks to
-#          re-enable text input, and dispatches events to registered handlers.
-# Tags: input, manager, modular
+"""
+input_manager.py - Provides a dedicated InputManager for handling and dispatching input events.
+
+Version: 1.1
+"""
 
 import pygame
 
