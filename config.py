@@ -52,6 +52,3 @@ class Config:
             The scaled integer value.
         """
         return int(base_value * self.scale)
-
-# Global configuration instance
-GLOBAL_CONFIG = Config()

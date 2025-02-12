@@ -5,16 +5,19 @@ Version: 2.6
 """
 
 import pygame
+from typing import Any, Callable, List, Tuple
 from ui_manager import Button
 from base_layer import BaseLayer
 from layout_constants import ButtonLayout, TitleLayout, LayerZIndex
+from scene_manager import SceneManager
+from config import Config
 
 class MenuLayer(BaseLayer):
     """
     The interactive menu layer that displays a title and buttons for scene selection.
     """
 
-    def __init__(self, scene_manager, font, menu_items, config):
+    def __init__(self, scene_manager: SceneManager, font: pygame.font.Font, menu_items: List[Tuple[str, str]], config: Config) -> None:
         """
         Initializes the MenuLayer with the given scene manager, font, menu items, and configuration.
         
@@ -24,42 +27,42 @@ class MenuLayer(BaseLayer):
             menu_items: A list of tuples containing (label, scene_key) for each menu button.
             config: The configuration object containing theme and scaling information.
         """
-        self.z = LayerZIndex.MENU
-        self.scene_manager = scene_manager
-        self.font = font
-        self.config = config
-        self.menu_items = menu_items  # List of (label, scene_key) tuples.
-        self.selected_index = 0
-        self.last_nav_time = 0
-        self.debounce_interval = 100  # milliseconds
-        self.buttons = []
+        self.z: int = LayerZIndex.MENU
+        self.scene_manager: SceneManager = scene_manager
+        self.font: pygame.font.Font = font
+        self.config: Config = config
+        self.menu_items: List[Tuple[str, str]] = menu_items
+        self.selected_index: int = 0
+        self.last_nav_time: int = 0
+        self.debounce_interval: int = 100  # milliseconds
+        self.buttons: List[Any] = []
         self.create_buttons()
 
-    def create_buttons(self):
+    def create_buttons(self) -> None:
         """
         Creates and positions the buttons for the menu based on configuration and scaling factors.
         Computes each scale value once and stores it in local variables.
         """
-        button_width = self.config.scale_value(ButtonLayout.WIDTH_FACTOR)
-        button_height = self.config.scale_value(ButtonLayout.HEIGHT_FACTOR)
-        margin = self.config.scale_value(ButtonLayout.MARGIN_FACTOR)
-        start_y = self.config.scale_value(ButtonLayout.START_Y_FACTOR)
-        x = (self.config.screen_width - button_width) // 2
+        button_width: int = self.config.scale_value(ButtonLayout.WIDTH_FACTOR)
+        button_height: int = self.config.scale_value(ButtonLayout.HEIGHT_FACTOR)
+        margin: int = self.config.scale_value(ButtonLayout.MARGIN_FACTOR)
+        start_y: int = self.config.scale_value(ButtonLayout.START_Y_FACTOR)
+        x: int = (self.config.screen_width - button_width) // 2
         self.buttons = []
         for i, (label, scene_key) in enumerate(self.menu_items):
-            y = start_y + i * (button_height + margin)
-            rect = (x, y, button_width, button_height)
-            button = Button(
+            y: int = start_y + i * (button_height + margin)
+            rect: Tuple[int, int, int, int] = (x, y, button_width, button_height)
+            button: Button = Button(
                 rect,
                 label,
-                self.make_callback(scene_key),  # Helper to capture scene_key.
+                self.make_callback(scene_key),
                 self.font,
                 normal_color=self.config.theme["button_normal_color"],
                 selected_color=self.config.theme["button_selected_color"],
             )
             self.buttons.append(button)
 
-    def make_callback(self, scene_key):
+    def make_callback(self, scene_key: str) -> Callable[[], None]:
         """
         Creates a callback function that sets the scene based on the provided scene_key.
         
@@ -71,7 +74,7 @@ class MenuLayer(BaseLayer):
         """
         return lambda sk=scene_key: self.scene_manager.set_scene(sk)
 
-    def _process_navigation(self, key):
+    def _process_navigation(self, key: int) -> None:
         """
         Processes keyboard navigation input to move between menu items or select an item.
         
@@ -85,7 +88,7 @@ class MenuLayer(BaseLayer):
         elif key in (pygame.K_RETURN, pygame.K_SPACE):
             self.buttons[self.selected_index].callback()
 
-    def update(self):
+    def update(self) -> None:
         """
         Updates the menu layer.
         
@@ -93,40 +96,35 @@ class MenuLayer(BaseLayer):
         """
         pass
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         """
         Draws the menu title and buttons onto the provided screen.
         
         Parameters:
             screen: The pygame Surface on which to draw the menu.
         """
-        title_text = "MAIN MENU"
-        title_surface = self.font.render(
-            title_text, True, self.config.theme["title_color"]
-        )
-        title_x = (self.config.screen_width - title_surface.get_width()) // 2
+        title_text: str = "MAIN MENU"
+        title_surface: pygame.Surface = self.font.render(title_text, True, self.config.theme["title_color"])
+        title_x: int = (self.config.screen_width - title_surface.get_width()) // 2
         screen.blit(title_surface, (title_x, self.config.scale_value(TitleLayout.Y_OFFSET)))
         for i, button in enumerate(self.buttons):
-            selected = i == self.selected_index
+            selected: bool = i == self.selected_index
             button.draw(screen, selected)
             if selected:
-                pygame.draw.rect(
-                    screen, self.config.theme["highlight_color"], button.rect, 3
-                )
+                pygame.draw.rect(screen, self.config.theme["highlight_color"], button.rect, 3)
 
-    def on_input(self, event):
+    def on_input(self, event: pygame.event.Event) -> None:
         """
         Handles input events for menu navigation.
         
         Parameters:
             event: A pygame event.
         """
-        current_time = pygame.time.get_ticks()
+        current_time: int = pygame.time.get_ticks()
         if current_time - self.last_nav_time < self.debounce_interval:
             return
         if event.type == pygame.KEYDOWN:
             self._process_navigation(event.key)
             self.last_nav_time = current_time
         elif event.type == pygame.TEXTINPUT:
-            # TEXTINPUT events are ignored in favor of KEYDOWN navigation.
             pass

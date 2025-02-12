@@ -6,22 +6,26 @@ Version: 1.0
 """
 
 import pygame
+from typing import Any
 from base_scene import BaseScene
-from base_layer import BaseLayer  # Import BaseLayer for TestLayer
+from base_layer import BaseLayer
 from layout_constants import LayerZIndex
+from config import Config
+from layer_manager import LayerManager
+from universal_layers import UniversalLayerFactory
 
 class TestScene(BaseScene):
     """
     Test scene to confirm that the universal layered system and scene switching work.
     """
 
-    def __init__(self, font, config, layer_manager, universal_factory):
+    def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager, universal_factory: UniversalLayerFactory) -> None:
         """
         Initializes the TestScene with a custom test layer.
         
         Parameters:
             font: The pygame font used for rendering.
-            config: The configuration object containing screen dimensions and scale.
+            config: The configuration object.
             layer_manager: The shared LayerManager for managing layers.
             universal_factory: The UniversalLayerFactory for creating universal layers.
         """
@@ -33,32 +37,32 @@ class TestLayer(BaseLayer):
     A test layer that displays test scene text and animates a simple rotation.
     """
 
-    def __init__(self, font, config):
+    def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
         Initializes the TestLayer with the provided font and configuration.
         
         Parameters:
             font: The pygame font used for rendering.
-            config: The configuration object containing screen dimensions and scale.
+            config: The configuration object.
         """
-        self.z = LayerZIndex.TEST  # Drawn on top of universal layers.
-        self.font = font
-        self.config = config
-        self.angle = 0  # For simple animation
+        self.z: int = LayerZIndex.TEST
+        self.font: pygame.font.Font = font
+        self.config: Config = config
+        self.angle: int = 0
 
-    def update(self):
+    def update(self) -> None:
         """Updates the layer by incrementing the angle for animation."""
         self.angle = (self.angle + 2) % 360
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         """
         Draws the test scene text onto the provided screen.
         
         Parameters:
             screen: The pygame Surface on which to draw.
         """
-        text = "TEST SCENE"
-        text_surface = self.font.render(text, True, (255, 255, 255))
+        text: str = "TEST SCENE"
+        text_surface: pygame.Surface = self.font.render(text, True, (255, 255, 255))
         text_rect = text_surface.get_rect(
             center=(
                 self.config.screen_width // 2,
@@ -67,7 +71,7 @@ class TestLayer(BaseLayer):
         )
         screen.blit(text_surface, text_rect)
 
-    def on_input(self, event):
+    def on_input(self, event: pygame.event.Event) -> None:
         """
         Handles input events for the test layer.
         

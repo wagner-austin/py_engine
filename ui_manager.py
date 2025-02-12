@@ -5,16 +5,17 @@ Version: 1.0
 """
 
 import pygame
+from typing import Any, Callable, List, Tuple
 
 class Button:
     """
     Represents a clickable UI button.
     """
 
-    def __init__(self, rect, label, callback, font,
-                 normal_color=(200, 0, 200),
-                 selected_color=(57, 255, 20),
-                 background_color=None):
+    def __init__(self, rect: Tuple[int, int, int, int], label: str, callback: Callable[[], None], font: pygame.font.Font,
+                 normal_color: Tuple[int, int, int]=(200, 0, 200),
+                 selected_color: Tuple[int, int, int]=(57, 255, 20),
+                 background_color: Any=None) -> None:
         """
         Initializes the Button with the provided rectangle, label, callback, and font.
         
@@ -28,18 +29,18 @@ class Button:
             background_color: Optional background color for the button.
         """
         self.rect = pygame.Rect(rect)
-        self.label = label
-        self.callback = callback
-        self.font = font
-        self.normal_color = normal_color
-        self.selected_color = selected_color
-        self.background_color = background_color  # Optional fill color.
-        self.text_surface_normal = None
-        self.text_surface_selected = None
-        self._cached_state = None
+        self.label: str = label
+        self.callback: Callable[[], None] = callback
+        self.font: pygame.font.Font = font
+        self.normal_color: Tuple[int, int, int] = normal_color
+        self.selected_color: Tuple[int, int, int] = selected_color
+        self.background_color: Any = background_color  # Optional fill color.
+        self.text_surface_normal: Any = None
+        self.text_surface_selected: Any = None
+        self._cached_state: Any = None
         self.update_surfaces()
 
-    def update_surfaces(self):
+    def update_surfaces(self) -> None:
         """
         Re-renders the text surfaces using the current font and colors if properties have changed.
         """
@@ -50,7 +51,7 @@ class Button:
         self.text_surface_selected = self.font.render(self.label, True, self.selected_color)
         self._cached_state = current_state
 
-    def update(self):
+    def update(self) -> None:
         """
         Updates the button.
         
@@ -58,7 +59,7 @@ class Button:
         """
         self.update_surfaces()
 
-    def draw(self, screen, selected=False):
+    def draw(self, screen: pygame.Surface, selected: bool=False) -> None:
         """
         Draws the button onto the provided screen.
         
@@ -72,7 +73,7 @@ class Button:
         text_rect = text_surface.get_rect(center=self.rect.center)
         screen.blit(text_surface, text_rect)
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         """
         Handles input events for the button.
         
@@ -83,17 +84,16 @@ class Button:
             if self.rect.collidepoint(event.pos):
                 self.callback()
 
-
 class UIManager:
     """
     Manages a collection of UI elements, handling rendering and event dispatch.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the UIManager with an empty list of UI elements."""
-        self.ui_elements = []  # List of UI components
+        self.ui_elements: List[Any] = []  # List of UI components
 
-    def register(self, element):
+    def register(self, element: Any) -> None:
         """
         Registers a UI element with the manager.
         
@@ -103,7 +103,7 @@ class UIManager:
         if element not in self.ui_elements:
             self.ui_elements.append(element)
 
-    def unregister(self, element):
+    def unregister(self, element: Any) -> None:
         """
         Unregisters a UI element from the manager.
         
@@ -113,7 +113,7 @@ class UIManager:
         if element in self.ui_elements:
             self.ui_elements.remove(element)
 
-    def update(self):
+    def update(self) -> None:
         """
         Updates all registered UI elements.
         """
@@ -121,7 +121,7 @@ class UIManager:
             if hasattr(element, "update"):
                 element.update()
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         """
         Draws all registered UI elements onto the provided screen.
         
@@ -132,7 +132,7 @@ class UIManager:
             if hasattr(element, "draw"):
                 element.draw(screen)
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         """
         Dispatches an event to all registered UI elements.
         
