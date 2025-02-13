@@ -1,6 +1,5 @@
 """
 instruction_layer.py - Provides the instruction layer that displays on-screen instructions.
-
 Version: 1.2 (updated)
 """
 
@@ -9,7 +8,9 @@ from typing import Any
 from .base_layer import BaseLayer
 from layout_constants import LayerZIndex, InstructionLayout
 from config import Config
+from plugins import register_universal_layer  # New import for universal layer registration
 
+@register_universal_layer("instruction", "foreground")
 class InstructionLayer(BaseLayer):
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
@@ -25,7 +26,7 @@ class InstructionLayer(BaseLayer):
         self.text: str = "Use W/S to navigate, Enter to select, Q/Esc to return."
         self.color: Any = self.config.theme.instruction_color
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """Updates the instruction layer. No dynamic behavior implemented."""
         pass
 

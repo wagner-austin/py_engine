@@ -7,7 +7,6 @@ Version: 2.6 (modified for new home scene options)
 from plugins import register_scene
 from .base_scene import BaseScene
 from layers.menu_layer import MenuLayer
-#from typing: Any
 from config import Config
 import pygame
 from managers.layer_manager import LayerManager

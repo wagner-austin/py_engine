@@ -1,7 +1,5 @@
 """
 layer_manager.py - Provides a LayerManager for managing scene layers.
-
-Version: 1.2 (updated with refined type hints)
 """
 
 from typing import List
@@ -37,10 +35,10 @@ class LayerManager:
         self._sorted_layers = []
         self._dirty = True
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         self._sort_layers()
         for layer in self._sorted_layers:
-            layer.update()
+            layer.update(dt)
 
     def draw(self, screen: pygame.Surface) -> None:
         self._sort_layers()

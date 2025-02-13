@@ -1,7 +1,5 @@
 """
 scene_manager.py - Scene manager for handling scene transitions and centralized input.
-
-Version: 1.0 (updated with refined type hints)
 """
 
 import pygame
@@ -9,97 +7,70 @@ from typing import Dict, Optional
 from config import Config
 from managers.input_manager import InputManager
 from scenes.base_scene import BaseScene
+from plugins import transition_registry
+from transitions import Transition  # New import for proper type annotation
 
 class SceneManager:
     """
-    Manages scenes, handles transitions, and dispatches input events.
+    Manages scenes, handles transitions, and centralizes input dispatch.
     """
-
     def __init__(self, config: Config, input_manager: InputManager) -> None:
-        """
-        Initializes the SceneManager.
-
-        Parameters:
-            config: Global configuration object.
-            input_manager: An InputManager instance responsible for dispatching events.
-        """
         self.config: Config = config
         self.input_manager: InputManager = input_manager
         self.scenes: Dict[str, BaseScene] = {}
         self.current_scene: Optional[BaseScene] = None
-        # Register self with the input manager.
+        self.transition: Optional[Transition] = None  # Now properly typed as a Transition instance
         self.input_manager.register_handler(self)
 
     def add_scene(self, name: str, scene: BaseScene) -> None:
-        """
-        Adds a scene to the manager (scenes are not automatically registered).
-
-        Parameters:
-            name: The key under which to store the scene.
-            scene: The scene instance.
-        """
         self.scenes[name] = scene
 
-    def _register_scene(self, scene: BaseScene) -> None:
-        """
-        Registers a scene with the input manager.
-        If the scene has an on_enter() method, it is called before registration.
+    def set_scene(self, name: str, transition_type: Optional[str] = None, duration: float = 1.0) -> None:
+        if name not in self.scenes:
+            return
 
-        Parameters:
-            scene: The scene instance to register.
-        """
-        if hasattr(scene, "on_enter"):
-            scene.on_enter()
-        self.input_manager.register_handler(scene)
+        new_scene = self.scenes[name]
+        new_scene.populate_layers()
+        new_scene.on_enter()
 
-    def _unregister_scene(self, scene: BaseScene) -> None:
-        """
-        Unregisters a scene from the input manager.
+        if self.current_scene is not None:
+            # If no transition type is provided, use the active transition from transitions.py.
+            if transition_type is None:
+                from transitions import ACTIVE_TRANSITION
+                transition_type = ACTIVE_TRANSITION
+            # Look up the transition plugin from the central registry.
+            transition_creator = transition_registry.get(transition_type.lower())
+            if transition_creator:
+                self.transition = transition_creator(self.current_scene, new_scene, self.config, duration)
+                self.current_scene = new_scene
+            else:
+                self.current_scene = new_scene
+        else:
+            self.current_scene = new_scene
 
-        Parameters:
-            scene: The scene instance to unregister.
-        """
-        self.input_manager.unregister_handler(scene)
+    def update(self, dt: float = None) -> None:
+        if dt is None:
+            dt = 1.0 / self.config.fps
 
-    def set_scene(self, name: str) -> None:
-        """
-        Switches the active scene.
-        Unregisters the old scene, repopulates layers for the new scene (if applicable),
-        and registers the new scene using the helper methods.
-
-        Parameters:
-            name: The key of the scene to switch to.
-        """
-        if name in self.scenes:
-            if self.current_scene:
-                self._unregister_scene(self.current_scene)
-            self.current_scene = self.scenes[name]
-            if hasattr(self.current_scene, "populate_layers"):
-                self.current_scene.populate_layers()
-            self._register_scene(self.current_scene)
-
-    def update(self) -> None:
-        """
-        Updates the currently active scene.
-        """
-        if self.current_scene:
-            self.current_scene.update()
+        if self.transition:
+            self.transition.update(dt)
+            if self.transition.is_complete():
+                self.transition = None
+        elif self.current_scene:
+            self.current_scene.update(dt)
 
     def draw(self, screen: pygame.Surface) -> None:
-        """
-        Draws the currently active scene onto the provided screen.
-
-        Parameters:
-            screen: The pygame Surface on which to draw.
-        """
-        if self.current_scene:
+        if self.transition:
+            self.transition.draw(screen)
+        elif self.current_scene:
             self.current_scene.draw(screen)
 
-    def on_global_input(self, event: pygame.event.Event) -> None:
-        """
-        Handles global input events (e.g., Escape or Q) by returning to the main menu.
+    def on_input(self, event: pygame.event.Event) -> None:
+        if self.transition:
+            # Optionally, handle input during a transition if desired.
+            pass
+        elif self.current_scene:
+            self.current_scene.on_input(event)
 
-        Parameters:
-            event: The pygame event triggering the global input.
-        """
+    def on_global_input(self, event: pygame.event.Event) -> None:
         self.set_scene("menu")

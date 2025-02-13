@@ -1,6 +1,6 @@
 """
 play_scene.py - Basic Play scene.
-Version: 1.0
+Version: 1.0 (updated: removed duplicate on_input)
 """
 
 from plugins import register_scene
@@ -15,7 +15,7 @@ class PlayScene(BaseScene):
     def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager, universal_factory: UniversalLayerFactory) -> None:
         """
         Initializes the PlayScene.
-        
+
         Parameters:
             font: The pygame font used for rendering.
             config: The configuration object.
@@ -30,14 +30,3 @@ class PlayScene(BaseScene):
         Called when the scene becomes active.
         """
         print("Entered Play Scene")
-
-    def on_input(self, event: pygame.event.Event) -> None:
-        """
-        Basic input handling for the Play scene.
-        Pressing ESC returns to the menu.
-        """
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            # You could switch back to the menu here if desired.
-            pass
-        else:
-            self.forward_input(event)

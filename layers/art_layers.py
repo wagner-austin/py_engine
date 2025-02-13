@@ -12,6 +12,7 @@ from art_assets import STAR_ART, BACKGROUND_ART
 from .base_layer import BaseLayer
 from layout_constants import ArtLayout, LayerZIndex, ArtColors
 from config import Config
+from plugins import register_universal_layer  # New import for universal layer registration
 
 def stretch_line(line: str, font: pygame.font.Font, target_width: int) -> str:
     """
@@ -38,6 +39,7 @@ def stretch_line(line: str, font: pygame.font.Font, target_width: int) -> str:
         new_line += " " * extra_spaces + char
     return new_line
 
+@register_universal_layer("star_art", "background")
 class StarArtLayer(BaseLayer):
     """
     Layer for displaying star art in the background.
@@ -57,7 +59,7 @@ class StarArtLayer(BaseLayer):
         self.art: List[str] = STAR_ART
         self.line_height: int = self.font.get_height()
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """Updates the layer. No dynamic behavior implemented."""
         pass
 
@@ -82,6 +84,7 @@ class StarArtLayer(BaseLayer):
             )
             screen.blit(text_surface, text_rect)
 
+@register_universal_layer("background_art", "background")
 class BackGroundArtLayer(BaseLayer):
     """
     Layer for displaying background art in the foreground.
@@ -101,7 +104,7 @@ class BackGroundArtLayer(BaseLayer):
         self.art: List[str] = BACKGROUND_ART
         self.line_height: int = self.font.get_height()
 
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """Updates the layer. No dynamic behavior implemented."""
         pass
 

@@ -1,17 +1,18 @@
 """
 menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
-
-Version: 2.7 (modified for Quit option handling and centered menu)
+Version: 2.12 (modified for Quit option handling, centered menu, and unified particle effects)
 """
 
 import pygame
 from typing import Callable, List, Tuple
 from functools import partial
 from ui_elements import Button
+from effects.particle_effect import create_default_continuous_effect
 from .base_layer import BaseLayer
 from layout_constants import ButtonLayout, TitleLayout, MenuLayout, LayerZIndex
 from managers.scene_manager import SceneManager
 from config import Config
+from controls import MENU_NAVIGATION  # Import centralized menu navigation keys
 
 class MenuLayer(BaseLayer):
     """
@@ -35,23 +36,33 @@ class MenuLayer(BaseLayer):
         self.menu_items: List[Tuple[str, str]] = menu_items
         self.selected_index: int = 0
         self.last_nav_time: int = 0
-        self.debounce_interval: int = MenuLayout.DEBOUNCE_INTERVAL_MS  # centralized constant
+        self.debounce_interval: int = MenuLayout.DEBOUNCE_INTERVAL_MS  # Debounce interval in milliseconds.
         self.buttons: List[Button] = []
         self.title_y: int = 0  # Will be computed in create_buttons()
         self.create_buttons()
+        # Instantiate a single particle effect using the continuous effect factory.
+        self.continuous_effect = create_default_continuous_effect()
+        self.continuous_spawn_timer: float = 0.0
+        self.continuous_spawn_interval: float = 0.2  # Spawn gentle particles every 0.2 seconds
 
-    # Public Methods
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """
-        Updates the menu layer.
+        Updates the menu layer, including the particle effect.
         
-        Currently, no dynamic updates are implemented.
+        Parameters:
+            dt: Delta time in seconds.
         """
-        pass
+        self.continuous_effect.update(dt)
+        self.continuous_spawn_timer += dt
+        if self.continuous_spawn_timer >= self.continuous_spawn_interval:
+            # Continuously spawn gentle, softly falling particles around the highlighted button.
+            current_button = self.buttons[self.selected_index]
+            self.continuous_effect.spawn_continuous_from_rect(current_button.rect)
+            self.continuous_spawn_timer = 0.0
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Draws the menu title and buttons onto the provided screen.
+        Draws the menu title, buttons, and the particle effect onto the provided screen.
         
         Parameters:
             screen: The pygame Surface on which to draw the menu.
@@ -63,8 +74,8 @@ class MenuLayer(BaseLayer):
         for i, button in enumerate(self.buttons):
             selected: bool = i == self.selected_index
             button.draw(screen, selected)
-            if selected:
-                pygame.draw.rect(screen, self.config.theme.highlight_color, button.rect, 3)
+        # Draw the continuous particle effect.
+        self.continuous_effect.draw(screen)
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
@@ -82,7 +93,6 @@ class MenuLayer(BaseLayer):
         elif event.type == pygame.TEXTINPUT:
             pass
 
-    # --- Button Creation Methods ---
     def create_buttons(self) -> None:
         """
         Creates and positions the buttons for the menu based on configuration and scaling factors.
@@ -96,15 +106,13 @@ class MenuLayer(BaseLayer):
         title_text: str = "MAIN MENU"
         title_surface: pygame.Surface = self.font.render(title_text, True, self.config.theme.title_color)
         title_height: int = title_surface.get_height()
-        # Use the same margin between title and buttons.
         title_to_button_margin: int = margin
         
         n: int = len(self.menu_items)
         total_buttons_height: int = n * button_height + (n - 1) * margin
         total_menu_height: int = title_height + title_to_button_margin + total_buttons_height
-        # Calculate starting Y to center the whole menu block.
         start_y: int = (self.config.screen_height - total_menu_height) // 2
-        self.title_y = start_y  # Title is drawn at this Y position.
+        self.title_y = start_y
         button_start_y: int = start_y + title_height + title_to_button_margin
         
         x: int = (self.config.screen_width - button_width) // 2
@@ -134,20 +142,25 @@ class MenuLayer(BaseLayer):
         """
         return partial(self._change_scene, scene_key)
 
-    # --- Navigation and Scene Switching Helpers ---
     def _process_navigation(self, key: int) -> None:
         """
         Processes keyboard navigation input to move between menu items or select an item.
+        Triggers a particle effect upon selection change.
         
         Parameters:
             key: The key code from a KEYDOWN event.
         """
-        if key in (pygame.K_w,):
+        old_index = self.selected_index
+        if key == MENU_NAVIGATION["up"]:
             self.selected_index = (self.selected_index - 1) % len(self.buttons)
-        elif key in (pygame.K_s,):
+        elif key == MENU_NAVIGATION["down"]:
             self.selected_index = (self.selected_index + 1) % len(self.buttons)
-        elif key in (pygame.K_RETURN, pygame.K_SPACE):
+        elif key in MENU_NAVIGATION["select"]:
             self.buttons[self.selected_index].callback()
+        if self.selected_index != old_index:
+            # Trigger a particle effect when the selection changes.
+            new_button = self.buttons[self.selected_index]
+            self.continuous_effect.spawn_continuous_from_rect(new_button.rect)
 
     def _change_scene(self, scene_key: str) -> None:
         """

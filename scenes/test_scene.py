@@ -49,14 +49,14 @@ class TestLayer(BaseLayer):
         self.z: int = LayerZIndex.TEST
         self.font: pygame.font.Font = font
         self.config: Config = config
-        self.angle: int = 0
+        self.angle: float = 0
 
-    # Public Methods
-    def update(self) -> None:
+    def update(self, dt: float) -> None:
         """
         Updates the layer by incrementing the angle for animation.
         """
-        self.angle = (self.angle + 2) % 360
+        # Assume a rotation speed of 120 degrees per second.
+        self.angle = (self.angle + 120 * dt) % 360
 
     def draw(self, screen: pygame.Surface) -> None:
         """
