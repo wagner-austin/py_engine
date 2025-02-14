@@ -1,6 +1,6 @@
 """
 menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
-Version: 2.12 (modified for Quit option handling, centered menu, and unified particle effects)
+Version: 2.12.1
 """
 
 import pygame
@@ -13,21 +13,22 @@ from layout_constants import ButtonLayout, TitleLayout, MenuLayout, LayerZIndex
 from managers.scene_manager import SceneManager
 from config import Config
 from controls import MENU_NAVIGATION  # Import centralized menu navigation keys
+from plugins import register_layer
 
+@register_layer("menu_layer", "menu_only")
 class MenuLayer(BaseLayer):
     """
     The interactive menu layer that displays a title and buttons for scene selection.
     """
-
     def __init__(self, scene_manager: SceneManager, font: pygame.font.Font, menu_items: List[Tuple[str, str]], config: Config) -> None:
         """
-        Initializes the MenuLayer with the given scene manager, font, menu items, and configuration.
+        Initializes the MenuLayer with static configuration.
         
         Parameters:
-            scene_manager: The manager responsible for scene transitions.
-            font: The pygame font to be used for rendering text.
-            menu_items: A list of tuples containing (label, scene_key) for each menu button.
-            config: The configuration object containing theme and scaling information.
+            scene_manager (SceneManager): The manager responsible for scene transitions.
+            font (pygame.font.Font): The pygame font to be used for rendering text.
+            menu_items (List[Tuple[str, str]]): A list of tuples containing (label, scene_key) for each menu button.
+            config (Config): The configuration object containing theme and scaling information.
         """
         self.z: int = LayerZIndex.MENU
         self.scene_manager: SceneManager = scene_manager
@@ -38,8 +39,8 @@ class MenuLayer(BaseLayer):
         self.last_nav_time: int = 0
         self.debounce_interval: int = MenuLayout.DEBOUNCE_INTERVAL_MS  # Debounce interval in milliseconds.
         self.buttons: List[Button] = []
-        self.title_y: int = 0  # Will be computed in create_buttons()
-        self.create_buttons()
+        self.title_y: int = 0  # Will be computed in _setup_buttons()
+        self._setup_buttons()
         # Instantiate a single particle effect using the continuous effect factory.
         self.continuous_effect = create_default_continuous_effect()
         self.continuous_spawn_timer: float = 0.0
@@ -50,7 +51,7 @@ class MenuLayer(BaseLayer):
         Updates the menu layer, including the particle effect.
         
         Parameters:
-            dt: Delta time in seconds.
+            dt (float): Delta time in seconds.
         """
         self.continuous_effect.update(dt)
         self.continuous_spawn_timer += dt
@@ -65,7 +66,7 @@ class MenuLayer(BaseLayer):
         Draws the menu title, buttons, and the particle effect onto the provided screen.
         
         Parameters:
-            screen: The pygame Surface on which to draw the menu.
+            screen (pygame.Surface): The pygame Surface on which to draw the menu.
         """
         title_text: str = "MAIN MENU"
         title_surface: pygame.Surface = self.font.render(title_text, True, self.config.theme.title_color)
@@ -82,7 +83,7 @@ class MenuLayer(BaseLayer):
         Handles input events for menu navigation.
         
         Parameters:
-            event: A pygame event.
+            event (pygame.event.Event): The input event to be processed.
         """
         current_time: int = pygame.time.get_ticks()
         if current_time - self.last_nav_time < self.debounce_interval:
@@ -93,28 +94,29 @@ class MenuLayer(BaseLayer):
         elif event.type == pygame.TEXTINPUT:
             pass
 
-    def create_buttons(self) -> None:
+    def _setup_buttons(self) -> None:
         """
         Creates and positions the buttons for the menu based on configuration and scaling factors.
+        
         The entire menu (title plus buttons) is centered vertically.
         """
         button_width: int = self.config.scale_value(ButtonLayout.WIDTH_FACTOR)
         button_height: int = self.config.scale_value(ButtonLayout.HEIGHT_FACTOR)
         margin: int = self.config.scale_value(ButtonLayout.MARGIN_FACTOR)
-        
+          
         # Render title to get its height.
         title_text: str = "MAIN MENU"
         title_surface: pygame.Surface = self.font.render(title_text, True, self.config.theme.title_color)
         title_height: int = title_surface.get_height()
         title_to_button_margin: int = margin
-        
+          
         n: int = len(self.menu_items)
         total_buttons_height: int = n * button_height + (n - 1) * margin
         total_menu_height: int = title_height + title_to_button_margin + total_buttons_height
         start_y: int = (self.config.screen_height - total_menu_height) // 2
         self.title_y = start_y
         button_start_y: int = start_y + title_height + title_to_button_margin
-        
+          
         x: int = (self.config.screen_width - button_width) // 2
         self.buttons = []
         for i, (label, scene_key) in enumerate(self.menu_items):
@@ -123,32 +125,33 @@ class MenuLayer(BaseLayer):
             button: Button = Button(
                 rect,
                 label,
-                self.make_callback(scene_key),
+                self._make_callback(scene_key),
                 self.font,
                 normal_color=self.config.theme.button_normal_color,
                 selected_color=self.config.theme.button_selected_color,
             )
             self.buttons.append(button)
 
-    def make_callback(self, scene_key: str) -> Callable[[], None]:
+    def _make_callback(self, scene_key: str) -> Callable[[], None]:
         """
         Creates a callback function that sets the scene based on the provided scene_key.
         
         Parameters:
-            scene_key: The key of the scene to switch to.
+            scene_key (str): The key of the scene to switch to.
         
         Returns:
-            A callable that calls the scene manager's set_scene method with the captured scene_key.
+            Callable[[], None]: A callable that calls the scene manager's set_scene method with the captured scene_key.
         """
         return partial(self._change_scene, scene_key)
 
     def _process_navigation(self, key: int) -> None:
         """
         Processes keyboard navigation input to move between menu items or select an item.
+        
         Triggers a particle effect upon selection change.
         
         Parameters:
-            key: The key code from a KEYDOWN event.
+            key (int): The key code from a KEYDOWN event.
         """
         old_index = self.selected_index
         if key == MENU_NAVIGATION["up"]:
@@ -167,7 +170,7 @@ class MenuLayer(BaseLayer):
         Helper function to change the scene.
         
         Parameters:
-            scene_key: The key of the scene to switch to.
+            scene_key (str): The key of the scene to switch to.
         """
         if scene_key == "quit":
             import sys

@@ -52,7 +52,7 @@ def light_theme() -> Theme:
 @register_theme('retro80')
 def retro80_theme() -> Theme:
     return Theme(
-        background_color=(10, 10, 30),          # Dark bluish background
+        background_color=(0, 0, 0),          # Dark bluish background
         title_color=(255, 20, 147),             # Hot pink for title
         button_normal_color=(75, 0, 130),       # Indigo for buttons (unselected)
         button_selected_color=(0, 255, 127),    # Neon green for selected buttons
@@ -126,11 +126,11 @@ def starwars_theme() -> Theme:
 
 # ACTIVE_THEME = theme_registry.get('default')
 # ACTIVE_THEME = theme_registry.get('light')
-#ACTIVE_THEME = theme_registry.get('retro80')
+ACTIVE_THEME = theme_registry.get('retro80')
 #ACTIVE_THEME = theme_registry.get('pastel')
 #ACTIVE_THEME = theme_registry.get('halloween')
 #ACTIVE_THEME = theme_registry.get('christmas')
-ACTIVE_THEME = theme_registry.get('starwars')
+#ACTIVE_THEME = theme_registry.get('starwars')
 
 # Default to the 'default' theme if none is selected.
 

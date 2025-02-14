@@ -1,10 +1,10 @@
 """
 universal_layers.py
-Version: 1.1 (updated)
+Version: 1.1 (Updated)
 Summary: Aggregates universal layers for scenes by instantiating new layer objects
-         based on the current font and configuration. The factory uses the universal_layer_registry,
-         populated by plugin decorators, to instantiate layers in the order:
-         background, then effect, then foreground.
+         based on the current font and configuration. This factory now reads from the unified
+         layer_registry (populated by the register_layer decorator) and instantiates layers
+         in the order: background, then effect, then foreground.
          New universal layer modules placed in the designated packages will be imported automatically.
 """
 
@@ -13,13 +13,13 @@ from typing import List
 import pygame
 from layers.base_layer import BaseLayer
 from config import Config
-from plugins import universal_layer_registry
+from plugins import layer_registry  # Updated: use unified layer_registry instead of universal_layer_registry
 
 class UniversalLayerFactory:
     """
     Factory for universal layers.
 
-    This factory reads from the universal_layer_registry to instantiate universal layers.
+    This factory reads from the layer_registry to instantiate universal layers.
     The get_universal_layers(font, config) method returns a list of universal layers ordered by category:
       - "background": e.g., StarArtLayer, BackGroundArtLayer.
       - "effect": e.g., RainEffectLayer, SnowEffectLayer.
@@ -43,7 +43,7 @@ class UniversalLayerFactory:
         # Define the desired order for universal layers.
         category_order = ["background", "effect", "foreground"]
         for category in category_order:
-            for key, reg in universal_layer_registry.items():
+            for key, reg in layer_registry.items():
                 if reg["category"] == category:
                     cls = reg["class"]
                     sig = inspect.signature(cls.__init__)

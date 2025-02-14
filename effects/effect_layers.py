@@ -1,9 +1,6 @@
 """
 effect_layers.py - Provides effect layers such as the rain effect and snow effect.
-
-Version: 1.2 (updated with centralized color constants)
-
-This file now registers effects that are meant to be universal using @register_universal_layer alone.
+Version: 1.2.1
 """
 
 import pygame
@@ -12,21 +9,23 @@ from typing import Dict, List
 from layers.base_layer import BaseLayer
 from layout_constants import LayerZIndex, EffectColors
 from config import Config
-from plugins import register_universal_layer
+from plugins import register_layer
 
-#@register_universal_layer("rain_effect", "effect")
+@register_layer("rain_effect", "effect")
 class RainEffectLayer(BaseLayer):
     def __init__(self, config: Config) -> None:
         """
         Initializes the RainEffectLayer with the provided configuration.
 
         Parameters:
-            config: The configuration object containing screen dimensions and scale.
+            config (Config): The configuration object containing screen dimensions and scale.
         """
         self.z: int = LayerZIndex.RAIN_EFFECT
         self.config: Config = config
         self.lines: List[Dict[str, float]] = []
         self.num_lines: int = 50
+        
+        self.persistent = True  # Mark this layer as persistent to maintain state across scenes.
         for _ in range(self.num_lines):
             x: float = random.uniform(0, self.config.screen_width)
             y: float = random.uniform(0, self.config.screen_height)
@@ -36,6 +35,9 @@ class RainEffectLayer(BaseLayer):
     def update(self, dt: float) -> None:
         """
         Updates the rain effect layer by moving each rain line.
+
+        Parameters:
+            dt (float): Delta time in seconds.
         """
         speed: int = self.config.scale_value(5)
         for line in self.lines:
@@ -48,7 +50,7 @@ class RainEffectLayer(BaseLayer):
         Draws the rain effect onto the provided screen.
 
         Parameters:
-            screen: The pygame Surface on which to draw the rain effect.
+            screen (pygame.Surface): The surface on which to draw the rain effect.
         """
         color = EffectColors.RAIN_EFFECT
         for line in self.lines:
@@ -56,19 +58,20 @@ class RainEffectLayer(BaseLayer):
             end_pos = (int(line["x"]), int(line["y"] + line["length"]))
             pygame.draw.line(screen, color, start_pos, end_pos, 1)
 
-@register_universal_layer("snow_effect", "effect")
+@register_layer("snow_effect", "effect")
 class SnowEffectLayer(BaseLayer):
     def __init__(self, config: Config) -> None:
         """
         Initializes the SnowEffectLayer with the provided configuration.
 
         Parameters:
-            config: The configuration object containing screen dimensions and scale.
+            config (Config): The configuration object containing screen dimensions and scale.
         """
         self.z: int = LayerZIndex.RAIN_EFFECT  # Same z-index as rain effect; adjust if needed.
         self.config: Config = config
         self.num_snowflakes: int = 100  # Increased density: more snowflakes.
         self.snowflakes: List[Dict[str, any]] = []
+        self.persistent = True  # Mark this layer as persistent to maintain state across scenes.
         for _ in range(self.num_snowflakes):
             snowflake = {
                 "x": random.uniform(0, self.config.screen_width),
@@ -83,6 +86,9 @@ class SnowEffectLayer(BaseLayer):
         """
         Updates the snow effect layer by moving each snowflake.
         Snowflakes gently fall with a slight horizontal drift.
+
+        Parameters:
+            dt (float): Delta time in seconds.
         """
         for flake in self.snowflakes:
             flake["y"] += flake["speed"] * dt
@@ -98,7 +104,7 @@ class SnowEffectLayer(BaseLayer):
         Draws the snow effect onto the provided screen.
 
         Parameters:
-            screen: The pygame Surface on which to draw the snow effect.
+            screen (pygame.Surface): The surface on which to draw the snow effect.
         """
         snow_color = (255, 255, 255)
         for flake in self.snowflakes:

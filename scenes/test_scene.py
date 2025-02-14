@@ -1,9 +1,8 @@
-"""
-test_scene.py - Test scene to confirm that the universal layered system and scene switching work.
-Uses universal layers along with a custom TestLayer for scene-specific content.
-
-Version: 1.0 (updated)
-"""
+"""  
+test_scene.py - Test scene to confirm that the universal layered system and scene switching work.  
+Uses a custom TestLayer for scene-specific content.  
+Version: 1.0 (updated)  
+"""  
 
 from plugins import register_scene
 import pygame
@@ -12,36 +11,32 @@ from layers.base_layer import BaseLayer
 from layout_constants import LayerZIndex
 from config import Config
 from managers.layer_manager import LayerManager
-from layers.universal_layers import UniversalLayerFactory
 
 @register_scene("test")
 class TestScene(BaseScene):
     """
     Test scene to confirm that the universal layered system and scene switching work.
     """
-
-    def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager, universal_factory: UniversalLayerFactory) -> None:
+    def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager) -> None:
         """
         Initializes the TestScene with a custom test layer.
-        
+          
         Parameters:
             font: The pygame font used for rendering.
             config: The configuration object.
             layer_manager: The shared LayerManager for managing layers.
-            universal_factory: The UniversalLayerFactory for creating universal layers.
         """
         extra_layers = [TestLayer(font, config)]
-        super().__init__("Test Scene", config, font, layer_manager, universal_factory, extra_layers)
+        super().__init__("Test Scene", config, font, layer_manager, extra_layers)
 
 class TestLayer(BaseLayer):
     """
     A test layer that displays test scene text and animates a simple rotation.
     """
-
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
         Initializes the TestLayer with the provided font and configuration.
-        
+          
         Parameters:
             font: The pygame font used for rendering.
             config: The configuration object.
@@ -61,7 +56,7 @@ class TestLayer(BaseLayer):
     def draw(self, screen: pygame.Surface) -> None:
         """
         Draws the test scene text onto the provided screen.
-        
+          
         Parameters:
             screen: The pygame Surface on which to draw the test scene.
         """
@@ -78,7 +73,7 @@ class TestLayer(BaseLayer):
     def on_input(self, event: pygame.event.Event) -> None:
         """
         Handles input events for the test layer.
-        
+          
         Parameters:
             event: A pygame event.
         """

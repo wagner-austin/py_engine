@@ -8,9 +8,9 @@ from typing import Any
 from .base_layer import BaseLayer
 from layout_constants import LayerZIndex, InstructionLayout
 from config import Config
-from plugins import register_universal_layer  # New import for universal layer registration
+from plugins import register_layer  # New import for universal layer registration
 
-@register_universal_layer("instruction", "foreground")
+#@register_layer("instruction", "foreground")
 class InstructionLayer(BaseLayer):
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """

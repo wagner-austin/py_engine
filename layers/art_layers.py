@@ -1,8 +1,6 @@
 """
 art_layers.py - Provides art layers for universal background and foreground art.
-Includes a helper function to stretch ASCII art lines horizontally.
-
-Version: 1.0 (updated with centralized color constants)
+Version: 1.1.1
 """
 
 import pygame
@@ -12,19 +10,19 @@ from art_assets import STAR_ART, BACKGROUND_ART
 from .base_layer import BaseLayer
 from layout_constants import ArtLayout, LayerZIndex, ArtColors
 from config import Config
-from plugins import register_universal_layer  # New import for universal layer registration
+from plugins import register_layer
 
 def stretch_line(line: str, font: pygame.font.Font, target_width: int) -> str:
     """
     Inserts extra spaces between characters to stretch the line horizontally.
 
     Parameters:
-        line: The original string to stretch.
-        font: The pygame font used to measure text width.
-        target_width: The desired width in pixels.
+        line (str): The original string to stretch.
+        font (pygame.font.Font): The pygame font used to measure text width.
+        target_width (int): The desired width in pixels.
 
     Returns:
-        The stretched string.
+        str: The stretched string.
     """
     current_width: int = font.size(line)[0]
     if current_width >= target_width:
@@ -39,28 +37,33 @@ def stretch_line(line: str, font: pygame.font.Font, target_width: int) -> str:
         new_line += " " * extra_spaces + char
     return new_line
 
-@register_universal_layer("star_art", "background")
+@register_layer("star_art", "background")
 class StarArtLayer(BaseLayer):
     """
     Layer for displaying star art in the background.
     """
-
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
         Initializes the StarArtLayer with the provided font and configuration.
 
         Parameters:
-            font: The pygame font used for rendering.
-            config: The configuration object containing screen dimensions and scale.
+            font (pygame.font.Font): The pygame font used for rendering.
+            config (Config): The configuration object containing screen dimensions and scale.
         """
         self.z: int = LayerZIndex.STAR_ART
         self.font: pygame.font.Font = font
         self.config: Config = config
         self.art: List[str] = STAR_ART
         self.line_height: int = self.font.get_height()
+        self.persistent: bool = True  # Mark as persistent so it does not dim during transitions
 
     def update(self, dt: float) -> None:
-        """Updates the layer. No dynamic behavior implemented."""
+        """
+        Updates the layer. No dynamic behavior implemented.
+
+        Parameters:
+            dt (float): Delta time in seconds.
+        """
         pass
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -68,7 +71,7 @@ class StarArtLayer(BaseLayer):
         Draws the star art onto the provided screen.
 
         Parameters:
-            screen: The pygame Surface on which to draw the star art.
+            screen (pygame.Surface): The surface on which to draw the star art.
         """
         top_margin: int = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
         bottom_margin: int = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
@@ -84,28 +87,33 @@ class StarArtLayer(BaseLayer):
             )
             screen.blit(text_surface, text_rect)
 
-@register_universal_layer("background_art", "background")
+#@register_layer:("background_art", "background")
 class BackGroundArtLayer(BaseLayer):
     """
     Layer for displaying background art in the foreground.
     """
-
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
         Initializes the BackGroundArtLayer with the provided font and configuration.
 
         Parameters:
-            font: The pygame font used for rendering.
-            config: The configuration object containing screen dimensions and scale.
+            font (pygame.font.Font): The pygame font used for rendering.
+            config (Config): The configuration object containing screen dimensions and scale.
         """
         self.z: int = LayerZIndex.BACKGROUND_ART
         self.font: pygame.font.Font = font
         self.config: Config = config
         self.art: List[str] = BACKGROUND_ART
         self.line_height: int = self.font.get_height()
+        self.persistent: bool = True  # Mark as persistent so it does not dim during transitions
 
     def update(self, dt: float) -> None:
-        """Updates the layer. No dynamic behavior implemented."""
+        """
+        Updates the layer. No dynamic behavior implemented.
+
+        Parameters:
+            dt (float): Delta time in seconds.
+        """
         pass
 
     def draw(self, screen: pygame.Surface) -> None:
@@ -113,9 +121,9 @@ class BackGroundArtLayer(BaseLayer):
         Draws the background art onto the provided screen.
 
         Parameters:
-            screen: The pygame Surface on which to draw the background art.
+            screen (pygame.Surface): The surface on which to draw the background art.
         """
-        y: int = int(self.config.screen_height * ArtLayout.BACKGROUND_VERTICAL_FACTOR)
+        y: int = int(self.config.screen_height * 0.5)  # Using 0.5 as a vertical factor, adjust as needed.
         for line in self.art:
             text_surface: pygame.Surface = self.font.render(line, True, ArtColors.BACKGROUND_TEXT)
             text_rect: pygame.Rect = text_surface.get_rect(
