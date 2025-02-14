@@ -1,6 +1,8 @@
 """
-menu_scene.py - Main menu scene built using a layered system with an interactive menu layer.
-Version: 2.6.2 (Updated to load scene‑specific layers from the registry)
+menu_scene.py
+-------------
+Main menu scene built using a layered system with an interactive menu layer.
+Version: 2.7.0
 """
 
 from plugins import register_scene, layer_registry
@@ -10,26 +12,43 @@ import pygame
 from managers.layer_manager import LayerManager
 from managers.scene_manager import SceneManager
 
-# Option 2 for scene‑specific layer:
-# In your MenuLayer file (e.g. layers/menu_layer.py) decorate with:
-# @register_layer("menu_layer", category="menu_only")
-# If you prefer Option 1 (manual creation), simply don't decorate MenuLayer and create it in extra_layers.
-
 @register_scene("menu")
 class MenuScene(BaseScene):
-    def __init__(self, scene_manager: SceneManager, font: pygame.font.Font, config: Config, layer_manager: LayerManager) -> None:
-        # Do not include the menu layer in extra_layers if you want to load it from the registry.
+    """
+    The MenuScene. It dynamically loads the 'menu_layer' plugin, and now also
+    optionally loads a separate 'menu_particle_effect' plugin for particles.
+    """
+
+    def __init__(
+        self,
+        scene_manager: SceneManager,
+        font: pygame.font.Font,
+        config: Config,
+        layer_manager: LayerManager
+    ) -> None:
+        """
+        Initializes the MenuScene.
+
+        Parameters:
+            scene_manager (SceneManager): Manages scene transitions.
+            font (pygame.font.Font): Font for rendering.
+            config (Config): Global configuration object.
+            layer_manager (LayerManager): The layer manager for this scene.
+        """
         super().__init__("Menu", config, font, layer_manager, extra_layers=[])
         self.scene_manager = scene_manager
 
     def on_enter(self) -> None:
+        """
+        Called when the MenuScene becomes active.
+        Loads the menu layer from the registry, and also tries to load the
+        menu_particle_effect plugin layer to replicate the old particle behavior.
+        """
         super().on_enter()
-        # Load scene-specific "menu_only" layer from registry if available.
-        # (This assumes you have decorated MenuLayer with @register_layer("menu_layer", category="menu_only"))
+
+        # 1) Load "menu_layer" from registry if available.
         if "menu_layer" in layer_registry:
             menu_cls = layer_registry["menu_layer"]["class"]
-            # Instantiate MenuLayer using its constructor.
-            # For example, if MenuLayer expects (scene_manager, font, menu_items, config):
             menu_layer_instance = menu_cls(
                 self.scene_manager,
                 self.font,
@@ -37,4 +56,12 @@ class MenuScene(BaseScene):
                 self.config
             )
             self.layer_manager.add_layer(menu_layer_instance)
+
+            # 2) Also load "menu_particle_effect" from registry if available.
+            if "menu_particle_effect" in layer_registry:
+                particle_cls = layer_registry["menu_particle_effect"]["class"]
+                # Pass the config and the newly-created menu_layer_instance.
+                particle_layer_instance = particle_cls(self.config, menu_layer_instance)
+                self.layer_manager.add_layer(particle_layer_instance)
+
         print("Entered Menu Scene")
