@@ -6,10 +6,10 @@ Version: 1.2.3 (Updated with debug print statements for layer registration,
 
 import pygame
 from typing import List, Optional
-from config import Config
+from core.config import Config
 from managers.layer_manager import LayerManager
 from layers.base_layer import BaseLayer  # For type hinting extra_layers
-from plugins import layer_registry  # Import the unified layer registry
+from plugins.plugins import layer_registry  # Import the unified layer registry
 
 class BaseScene:
     def __init__(

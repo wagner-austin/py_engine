@@ -5,9 +5,9 @@ Main menu scene built using a layered system with an interactive menu layer.
 Version: 2.7.0
 """
 
-from plugins import register_scene, layer_registry
+from plugins.plugins import register_scene, layer_registry
 from .base_scene import BaseScene
-from config import Config
+from core.config import Config
 import pygame
 from managers.layer_manager import LayerManager
 from managers.scene_manager import SceneManager

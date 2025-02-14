@@ -7,7 +7,7 @@ enable it by commenting/uncommenting the appropriate ACTIVE_THEME assignment.
 
 from dataclasses import dataclass
 from typing import Tuple
-from plugins import register_theme, theme_registry
+from plugins.plugins import register_theme, theme_registry
 
 @dataclass
 class Theme:

@@ -6,11 +6,10 @@ Note: The Theme dataclass and theme instances are now defined in themes.py.
 To change the active theme, update the ACTIVE_THEME variable in themes.py.
 """
 
-import pygame
 from dataclasses import dataclass, field
 from typing import Tuple
 from themes.themes import ACTIVE_THEME, Theme  # Import ACTIVE_THEME from themes.py
-from controls import GLOBAL_INPUT_KEYS  # Import global keys from controls module
+from .controls import GLOBAL_INPUT_KEYS  # Import global keys from controls module
 
 @dataclass
 class Config:

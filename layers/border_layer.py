@@ -4,11 +4,10 @@ Version: 1.1.0
 """
 
 import pygame
-from typing import Any
 from .base_layer import BaseLayer
-from layout_constants import BorderLayout, LayerZIndex
-from config import Config
-from plugins import register_layer
+from ui.layout_constants import BorderLayout, LayerZIndex
+from core.config import Config
+from plugins.plugins import register_layer
 
 @register_layer("border", "foreground")
 class BorderLayer(BaseLayer):

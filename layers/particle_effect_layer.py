@@ -7,9 +7,9 @@ Version: 2.0.0
 
 import pygame
 from typing import Optional
-from plugins import register_layer
+from plugins.plugins import register_layer
 from layers.base_layer import BaseLayer
-from config import Config
+from core.config import Config
 
 # We'll re‑use the default continuous effect factory.
 from effects.particle_effect import create_default_continuous_effect

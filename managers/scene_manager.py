@@ -5,11 +5,11 @@ Version: 1.1.1
 
 import pygame
 from typing import Dict, Optional
-from config import Config
+from core.config import Config
 from managers.input_manager import InputManager
 from scenes.base_scene import BaseScene
-from plugins import transition_registry
-from transitions import Transition  # For proper type annotation
+from plugins.plugins import transition_registry
+from transitions.transitions import Transition  # For proper type annotation
 
 class SceneManager:
     """
@@ -57,7 +57,7 @@ class SceneManager:
 
         if self.current_scene is not None:
             if transition_type is None:
-                from transitions import ACTIVE_TRANSITION
+                from transitions.transitions import ACTIVE_TRANSITION
                 transition_type = ACTIVE_TRANSITION
             transition_creator = transition_registry.get(transition_type.lower())
             if transition_creator:

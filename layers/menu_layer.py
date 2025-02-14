@@ -8,13 +8,13 @@ Version: 2.13.0
 import pygame
 from typing import Callable, List, Tuple
 from functools import partial
-from ui_elements import Button
+from ui.ui_elements import Button
 from .base_layer import BaseLayer
-from layout_constants import ButtonLayout, TitleLayout, MenuLayout, LayerZIndex
+from ui.layout_constants import ButtonLayout, TitleLayout, MenuLayout, LayerZIndex
 from managers.scene_manager import SceneManager
-from config import Config
-from controls import MENU_NAVIGATION  # Import centralized menu navigation keys
-from plugins import register_layer
+from core.config import Config
+from core.controls import MENU_NAVIGATION  # Import centralized menu navigation keys
+from plugins.plugins import register_layer
 
 @register_layer("menu_layer", "menu_only")
 class MenuLayer(BaseLayer):

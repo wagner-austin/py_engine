@@ -6,10 +6,9 @@ Version: 1.3.2 (Added screen.fill(...) in SimpleTransition.draw()
 
 import pygame
 from abc import ABC, abstractmethod
-from typing import Optional
-from config import Config
+from core.config import Config
 from scenes.base_scene import BaseScene
-from plugins import register_transition
+from plugins.plugins import register_transition
 
 # Global transition configuration parameters.
 TRANSITION_CONFIG = {

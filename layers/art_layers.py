@@ -6,11 +6,11 @@ Version: 1.1.1
 import pygame
 import math
 from typing import List
-from art_assets import STAR_ART, BACKGROUND_ART
+from assets.art_assets import STAR_ART, BACKGROUND_ART
 from .base_layer import BaseLayer
-from layout_constants import ArtLayout, LayerZIndex, ArtColors
-from config import Config
-from plugins import register_layer
+from ui.layout_constants import ArtLayout, LayerZIndex, ArtColors
+from core.config import Config
+from plugins.plugins import register_layer
 
 def stretch_line(line: str, font: pygame.font.Font, target_width: int) -> str:
     """

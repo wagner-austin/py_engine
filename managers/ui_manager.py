@@ -6,7 +6,7 @@ Version: 1.1 (updated - UI elements moved to ui_elements.py)
 
 import pygame
 from typing import List
-from ui_elements import IUIElement
+from ui.ui_elements import IUIElement
 
 class UIManager:
     """

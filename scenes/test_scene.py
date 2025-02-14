@@ -4,15 +4,15 @@ Uses a custom TestLayer for scene-specific content.
 Version: 1.0 (updated)  
 """  
 
-from plugins import register_scene
+from plugins.plugins import register_scene
 import pygame
 from .base_scene import BaseScene
 from layers.base_layer import BaseLayer
-from layout_constants import LayerZIndex
-from config import Config
+from ui.layout_constants import LayerZIndex
+from core.config import Config
 from managers.layer_manager import LayerManager
 
-@register_scene("test")
+#@register_scene("test")
 class TestScene(BaseScene):
     """
     Test scene to confirm that the universal layered system and scene switching work.

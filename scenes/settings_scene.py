@@ -3,10 +3,10 @@ settings_scene.py - Basic Settings scene.
 Version: 1.1.1  
 """  
 
-from plugins import register_scene
+from plugins.plugins import register_scene
 import pygame
 from scenes.base_scene import BaseScene
-from config import Config
+from core.config import Config
 from managers.layer_manager import LayerManager
 
 @register_scene("settings")

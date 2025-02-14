@@ -7,12 +7,12 @@ Summary: Main entry point for the application. This version prints the contents
 
 import pygame
 import sys
-from config import Config
+from core.config import Config
 from managers.scene_manager import SceneManager
 from managers.input_manager import InputManager
 from managers.layer_manager import LayerManager
-from plugin_loader import load_all_plugins
-from plugins import layer_registry  # Import the registry for debugging
+from plugins.plugin_loader import load_all_plugins
+from plugins.plugins import layer_registry  # Import the registry for debugging
 
 # -----------------------------------------------------------------------------
 # Load all plugin modules so that their decorators (and hence plugin registrations)

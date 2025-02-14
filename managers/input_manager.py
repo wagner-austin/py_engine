@@ -6,8 +6,8 @@ Version: 1.4 (updated to process only KEYDOWN events for phone keyboards)
 import pygame
 from typing import List, Union
 from pygame.event import Event
-from interfaces import IInputHandler, IGlobalInputHandler
-from config import Config
+from core.interfaces import IInputHandler, IGlobalInputHandler
+from core.config import Config
 
 # Define a union type for handlers that might implement either or both interfaces.
 InputHandlerType = Union[IInputHandler, IGlobalInputHandler]

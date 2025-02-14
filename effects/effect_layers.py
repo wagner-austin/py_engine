@@ -7,9 +7,9 @@ import pygame
 import random
 from typing import Dict, List
 from layers.base_layer import BaseLayer
-from layout_constants import LayerZIndex, EffectColors
-from config import Config
-from plugins import register_layer
+from ui.layout_constants import LayerZIndex, EffectColors
+from core.config import Config
+from plugins.plugins import register_layer
 
 @register_layer("rain_effect", "effect")
 class RainEffectLayer(BaseLayer):
