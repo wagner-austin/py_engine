@@ -62,7 +62,7 @@ def main():
     parser.add_argument(
         '-o', '--output',
         default="./temp.txt",
-        help="Output file path. Defaults to './temp.txt'."
+        help="Output file path. Defaults to './temp.txt' (in the same directory as savecode.py)."
     )
     parser.add_argument(
         '--skip',
@@ -88,8 +88,12 @@ def main():
         else:
             print(f"Warning: {file} is not a valid Python file.")
 
-    # Use the provided output file or default to './temp.txt'.
-    output_file = args.output
+    # Set output file to temp.txt in the same directory as savecode.py if the default is used.
+    if args.output == "./temp.txt":
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        output_file = os.path.join(script_dir, "temp.txt")
+    else:
+        output_file = args.output
 
     save_code(all_py_files, output_file)
 
