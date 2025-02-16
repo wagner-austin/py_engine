@@ -1,4 +1,3 @@
-
 """
 savecode.py - Save Python code from directories and files into one output file.
 Version: 1.2.1
@@ -14,12 +13,17 @@ def gather_py_files(root_dir, skip_dirs=None):
     """
     skip_dirs = set(skip_dirs or [])
     py_files = []
+    current_file = os.path.abspath(__file__)
     for dirpath, dirnames, filenames in os.walk(root_dir):
         # Remove directories that should be skipped so os.walk won’t traverse them.
         dirnames[:] = [d for d in dirnames if d not in skip_dirs]
         for fname in filenames:
             if fname.endswith(".py"):
-                py_files.append(os.path.join(dirpath, fname))
+                file_path = os.path.join(dirpath, fname)
+                # Skip the current script (savecode.py)
+                if os.path.abspath(file_path) == current_file:
+                    continue
+                py_files.append(file_path)
     return py_files
 
 def save_code(py_files, output_file):
@@ -77,6 +81,9 @@ def main():
     # Add individual Python files, ensuring they exist and have the correct extension.
     for file in args.files:
         if os.path.isfile(file) and file.endswith(".py"):
+            # Skip the current script (savecode.py)
+            if os.path.abspath(file) == os.path.abspath(__file__):
+                continue
             all_py_files.append(file)
         else:
             print(f"Warning: {file} is not a valid Python file.")
@@ -97,7 +104,7 @@ def main():
     print(f"\n{green}Files saved:{reset}")
     for f in all_py_files:
         print(f"{blue}- {f}{reset}")
-    print ("\n")
+    print("\n")
 
 if __name__ == "__main__":
     main()
