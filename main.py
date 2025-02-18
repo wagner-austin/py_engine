@@ -1,8 +1,7 @@
 """
-main.py
-Version: 1.5.2 (Updated with debug print statements for plugin registration)
-Summary: Main entry point for the application. This version prints the contents
-         of layer_registry before setting the initial scene.
+main.py - Main entry point for the application.
+Version: 1.5.3
+Summary: Initializes pygame, loads plugins, creates managers, and registers scenes.
 """
 
 import pygame
@@ -15,8 +14,7 @@ from plugins.plugin_loader import load_all_plugins
 from plugins.plugins import layer_registry  # Import the registry for debugging
 
 # -----------------------------------------------------------------------------
-# Load all plugin modules so that their decorators (and hence plugin registrations)
-# are executed.
+# Load all plugin modules so that plugin registrations are executed.
 PLUGIN_PACKAGES = [
     "layers",    # Layers (art layers, border, instruction, etc.)
     "effects",   # Effect layers (snow, rain, etc.)
@@ -50,13 +48,13 @@ scene_manager = SceneManager(config, input_manager)
 
 # -----------------------------------------------------------------------------
 # Debug: Print the layer registry contents at startup.
-print("=== Main: Layer registry at startup ===")
-if layer_registry:
-    for key, info in layer_registry.items():
-        print(f"Layer key: '{key}', category: '{info['category']}', class: {info['class']}")
-else:
-    print("Layer registry is empty!")
-print("========================================")
+#print("=== Main: Layer registry at startup ===")
+#if layer_registry:
+#    for key, info in layer_registry.items():
+#        print(f"Layer key: '{key}', category: '{info['category']}', class: {info['class']}")
+#else:
+#    print("Layer registry is empty!")
+#print("========================================")
 
 # -----------------------------------------------------------------------------
 # Create and register scenes.
@@ -66,7 +64,7 @@ from scenes.settings_scene import SettingsScene
 
 menu_scene = MenuScene(scene_manager, font, config, layer_manager)
 play_scene = PlayScene(font, config, layer_manager)
-settings_scene = SettingsScene(font, config, layer_manager)
+settings_scene = SettingsScene(scene_manager, font, config, layer_manager)
 
 scene_manager.add_scene("menu", menu_scene)
 scene_manager.add_scene("play", play_scene)

@@ -35,7 +35,7 @@ class BaseScene:
         self.font: pygame.font.Font = font
         self.layer_manager: LayerManager = layer_manager
         self.extra_layers: List[BaseLayer] = extra_layers or []
-        print(f"BaseScene '{self.name}' initialized with font: {self.font} and config: {self.config}")
+        #print(f"BaseScene '{self.name}' initialized with font: {self.font} and config: {self.config}")
 
     def populate_layers(self) -> None:
         """
@@ -50,8 +50,8 @@ class BaseScene:
         """
         # Remove all non‑persistent layers first
         self.layer_manager.clear()
-        print("Populating universal layers from registry...")
-        print("Layer registry contents:", layer_registry)
+        #print("Populating universal layers from registry...")
+        #print("Layer registry contents:", layer_registry)
 
         # Add universal layers from the plugin registry
         for key, info in layer_registry.items():
@@ -63,7 +63,7 @@ class BaseScene:
                 if any(isinstance(layer, layer_cls) for layer in self.layer_manager.layers):
                     continue
 
-                print(f"Adding registered layer: '{key}' with category: '{info['category']}'")
+                #print(f"Adding registered layer: '{key}' with category: '{info['category']}'")
 
                 # Attempt to instantiate with (font, config), then (config), then no args
                 try:
@@ -162,5 +162,5 @@ class BaseScene:
   
         This dynamic hook repopulates the layers by calling populate_layers().
         """
-        print(f"Scene on_enter() called for '{self.name}'")
+        #print(f"Scene on_enter() called for '{self.name}'")
         self.populate_layers()

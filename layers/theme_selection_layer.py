@@ -1,6 +1,6 @@
 """
 theme_selection_layer.py - Provides a layer for selecting and modifying the application theme.
-Version: 1.0.4
+Version: 1.0.5
 """
 
 import pygame
@@ -13,26 +13,24 @@ from ui.layout_constants import LayerZIndex, ButtonLayout, TitleLayout
 from core.controls import MENU_NAVIGATION  # Import centralized menu navigation keys
 
 class ThemeSelectionLayer(BaseLayer):
-    def __init__(
-        self,
-        config: Config,
-        font: pygame.font.Font,
-        layer_manager,
-        refresh_callback: Optional[Callable[[], None]] = None
-    ) -> None:
+    def __init__(self, config: Config, font: pygame.font.Font, layer_manager, 
+                 refresh_callback: Optional[Callable[[], None]] = None, 
+                 back_callback: Optional[Callable[[], None]] = None) -> None:
         """
         Initializes the ThemeSelectionLayer.
 
-        Parameters:
+        Parameters:  
             config (Config): The global configuration object.
             font (pygame.font.Font): The font used for rendering.
             layer_manager: The manager responsible for handling layers.
             refresh_callback (Optional[Callable[[], None]]): Callback to refresh the scene after a theme is selected.
+            back_callback (Optional[Callable[[], None]]): Callback to execute when the 'Back' button is pressed.
         """
         self.config = config
         self.font = font
         self.layer_manager = layer_manager
         self.refresh_callback = refresh_callback
+        self.back_callback = back_callback
         self.selected_index: int = 0
         self.buttons: List[Button] = []
         self.title: str = "Select Theme"
@@ -50,12 +48,12 @@ class ThemeSelectionLayer(BaseLayer):
         theme_keys.sort()
         # Append a "Back" option to allow returning from the theme selector.
         theme_keys.append("Back")
-        
+
         # Use configuration scaling for button layout values
         button_width = self.config.scale_value(ButtonLayout.WIDTH_FACTOR)
         button_height = self.config.scale_value(ButtonLayout.HEIGHT_FACTOR)
         margin = self.config.scale_value(ButtonLayout.MARGIN_FACTOR)
-        
+
         # Render title to get its height.
         title_surface = self.font.render(self.title, True, self.config.theme.title_color)
         title_height = title_surface.get_height()
@@ -85,16 +83,18 @@ class ThemeSelectionLayer(BaseLayer):
         """
         Callback when a button is pressed.
         If a theme is selected, update the config.theme accordingly and refresh the scene.
-        If 'Back' is pressed, remove this layer.
+        If 'Back' is pressed, execute the back callback if provided; otherwise, remove this layer.
         """
         if key == "Back":
-            self.layer_manager.remove_layer(self)
+            if self.back_callback:
+                self.back_callback()
+            else:
+                self.layer_manager.remove_layer(self)
         else:
             new_theme = theme_registry.get(key)
             if new_theme:
                 self.config.theme = new_theme
                 print(f"Theme changed to: {key}")
-                # Refresh the scene if a refresh callback is provided.
                 if self.refresh_callback:
                     self.refresh_callback()
             self.layer_manager.remove_layer(self)
@@ -109,7 +109,7 @@ class ThemeSelectionLayer(BaseLayer):
         """
         Draws the theme selection title and buttons.
 
-        Parameters:
+        Parameters:  
             screen (pygame.Surface): The surface on which to draw the layer.
         """
         # Draw the title using a layout constant for the Y offset.
