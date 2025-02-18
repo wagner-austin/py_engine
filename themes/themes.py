@@ -1,8 +1,7 @@
 """
-themes.py - Contains multiple theme definitions for the application using plugin registration.
-
-To add a new theme, define it below with the @register_theme decorator and then
-enable it by commenting/uncommenting the appropriate ACTIVE_THEME assignment.
+themes/themes.py - Contains multiple theme definitions for the application using plugin registration.
+Version: 1.3.0
+Summary: Updated the Christmas theme to use a much darker green background.
 """
 
 from dataclasses import dataclass
@@ -68,7 +67,7 @@ def pastel_theme() -> Theme:
     return Theme(
         background_color=(255, 250, 240),       # Floral white background
         title_color=(135, 206, 250),            # Light sky blue for title
-        button_normal_color=(152, 251, 152),    # Pale green for buttons (unselected)
+        button_normal_color=(85, 216, 242),    # Pale green for buttons (unselected)
         button_selected_color=(255, 182, 193),  # Light pink for selected buttons
         highlight_color=(221, 160, 221),        # Plum for highlight border
         border_color=(216, 191, 216),           # Thistle border
@@ -94,14 +93,14 @@ def halloween_theme() -> Theme:
 @register_theme('christmas')
 def christmas_theme() -> Theme:
     return Theme(
-        background_color=(0, 128, 0),           # Dark green background
-        title_color=(255, 0, 0),                # Red for title
-        button_normal_color=(34, 139, 34),      # Forest green for buttons (unselected)
-        button_selected_color=(255, 0, 0),      # Red for selected buttons
-        highlight_color=(255, 215, 0),          # Gold for highlight border
-        border_color=(255, 0, 0),               # Red border
-        instruction_color=(255, 255, 255),      # White instructions text
-        font_color=(255, 255, 255),             # White font color
+        background_color=(0, 64, 0),           # Much darker green background
+        title_color=(255, 0, 0),               # Red for title
+        button_normal_color=(255, 255, 255),     # Forest green for buttons (unselected)
+        button_selected_color=(255, 0, 0),     # Red for selected buttons
+        highlight_color=(255, 215, 0),         # Gold for highlight border
+        border_color=(255, 0, 0),              # Red border
+        instruction_color=(255, 255, 255),     # White instructions text
+        font_color=(255, 255, 255),            # White font color
         particle_color_palette=((255, 0, 0), (0, 255, 0))
     )
 
@@ -119,20 +118,14 @@ def starwars_theme() -> Theme:
         particle_color_palette=((192, 192, 192), (0, 191, 255))
     )
 
-# -----------------------------------------------------------------------------
 # Set the active theme.
-# To change the active theme, simply comment/uncomment one of the assignments below.
-# No need to touch any other file!
-
-# ACTIVE_THEME = theme_registry.get('default')
-# ACTIVE_THEME = theme_registry.get('light')
+ACTIVE_THEME = theme_registry.get('default')
+ACTIVE_THEME = theme_registry.get('light')
 #ACTIVE_THEME = theme_registry.get('retro80')
 #ACTIVE_THEME = theme_registry.get('pastel')
 #ACTIVE_THEME = theme_registry.get('halloween')
 #ACTIVE_THEME = theme_registry.get('christmas')
 ACTIVE_THEME = theme_registry.get('starwars')
-
-# Default to the 'default' theme if none is selected.
 
 if ACTIVE_THEME is None:
     ACTIVE_THEME = theme_registry.get('default')

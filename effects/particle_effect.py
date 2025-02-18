@@ -1,19 +1,13 @@
 """
-particle_effect.py - Implements a basic particle effect system.
-
-This module provides:
-  - Particle: A simple particle with position, velocity, lifetime, color, and shape.
-  - ParticleEffect: A manager class that spawns, updates, and draws particles.
-
-All particle-related parameters (size, density, lifetime, etc.) are defined in
-the PARTICLE_CONFIG dictionary. To change particle behavior, modify only this file.
-Particle colors are now determined by the active theme in themes.py.
+effects/particle_effect.py - Implements a basic particle effect system.
+Version: 1.2.3
+Summary: Updated to use a gradually updated particle color palette so that theme changes do not reset the particle animation.
 """
 
 import pygame
 import random
 from typing import Tuple, List
-from themes.themes import ACTIVE_THEME  # Moved import to the top for efficiency
+from core.config import Config
 
 # CONFIG AREA: Modify these parameters to change particle behavior.
 PARTICLE_CONFIG = {
@@ -26,31 +20,49 @@ PARTICLE_CONFIG = {
     "continuous_spawn_interval": 0.02 # time in seconds between spawns
 }
 
+def interpolate_color(color1: Tuple[int, int, int], color2: Tuple[int, int, int], t: float) -> Tuple[int, int, int]:
+    """
+    Interpolates between two colors.
+    Version: 1.2.3
+    """
+    return (
+        int(color1[0] + (color2[0] - color1[0]) * t),
+        int(color1[1] + (color2[1] - color1[1]) * t),
+        int(color1[2] + (color2[2] - color1[2]) * t)
+    )
+
+def blend_palette(palette1: Tuple[Tuple[int,int,int], ...], palette2: Tuple[Tuple[int,int,int], ...], t: float) -> Tuple[Tuple[int,int,int], ...]:
+    """
+    Blends two palettes (tuples of color tuples) based on t (0.0 to 1.0).
+    Version: 1.2.3
+    """
+    if len(palette1) == len(palette2):
+        return tuple(interpolate_color(c1, c2, t) for c1, c2 in zip(palette1, palette2))
+    else:
+        return palette2
+
 class Particle:
     def __init__(self, position: Tuple[int, int], velocity: Tuple[float, float],
                  lifetime: float, color: Tuple[int, int, int], radius: int, shape: str = "circle") -> None:
         self.position = list(position)
         self.velocity = list(velocity)
         self.lifetime = lifetime
-        self.initial_lifetime = lifetime  # store the original lifetime for fade calculation
+        self.initial_lifetime = lifetime  # store original lifetime for fade calculation
         self.color = color
         self.radius = radius
         self.shape = shape
 
     def update(self, dt: float) -> None:
-        # Apply gravity so particles fall quicker.
         self.velocity[1] += PARTICLE_CONFIG["gravity"] * dt
         self.position[0] += self.velocity[0] * dt
         self.position[1] += self.velocity[1] * dt
         self.lifetime -= dt
 
     def draw(self, screen: pygame.Surface) -> None:
-        # Calculate fade factor (from 1.0 to 0.0) and corresponding alpha value.
         fade_factor = max(0, min(1, self.lifetime / self.initial_lifetime))
         alpha = int(255 * fade_factor)
         if self.shape == "circle":
             diameter = self.radius * 2
-            # Create a temporary surface with per-pixel alpha.
             temp_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
             draw_color = self.color + (alpha,)
             pygame.draw.circle(temp_surface, draw_color, (self.radius, self.radius), self.radius)
@@ -61,68 +73,46 @@ class Particle:
             draw_color = self.color + (alpha,)
             pygame.draw.rect(temp_surface, draw_color, pygame.Rect(0, 0, diameter, diameter))
             screen.blit(temp_surface, (int(self.position[0] - self.radius), int(self.position[1] - self.radius)))
-        # Additional shapes can be added here.
 
 class ParticleEffect:
-    def __init__(self, color: Tuple[int, int, int],
-                 radius: int, shape: str, particle_count: int,
+    def __init__(self, config: Config, color: Tuple[int, int, int], radius: int, shape: str, particle_count: int,
                  lifetime: float, spawn_rect: pygame.Rect = None) -> None:
         """
-        Initializes the particle effect with configurable parameters.
-
-        Parameters:
-            color: The default color of particles.
-            radius: The radius (or half-size for squares) of particles.
-            shape: The shape of particles ('circle' or 'square').
-            particle_count: (Deprecated) Number of particles to spawn per trigger. Use PARTICLE_CONFIG["particles_per_spawn"] instead.
-            lifetime: Lifetime (in seconds) of each particle.
-            spawn_rect: A pygame.Rect representing the area within which particles will be spawned.
+        effects/particle_effect.py - Initializes the ParticleEffect.
+        Version: 1.2.3
+        Summary: Uses a dynamic particle color palette that updates gradually.
         """
-        self.color = color
+        self.config = config
+        self.color = color  # Fallback color (unused in spawn; color is chosen from current_palette)
         self.radius = radius
         self.shape = shape
-        self.particle_count = particle_count  # Deprecated – number of particles per spawn is now in the config.
+        self.particle_count = particle_count  # Deprecated – use config if needed.
         self.lifetime = lifetime
         self.particles: List[Particle] = []
-        self.spawn_rect = spawn_rect  # Required for timed spawns.
-        self.spawn_timer = 0.0  # Timer to track time between spawns.
+        self.spawn_rect = spawn_rect
+        self.spawn_timer = 0.0
+        # Initialize current_palette from the active theme's particle_color_palette
+        self.current_palette = self.config.theme.particle_color_palette
+        self.palette_transition_duration = 1.0  # seconds
 
     def spawn_continuous_from_rect(self, rect: pygame.Rect) -> None:
-        """
-        Spawns a number of gentle, softly falling particles from within the rectangle.
-        These particles have a low initial velocity with a slight downward bias,
-        a lifetime based on the gentle multiplier, and are more densely packed.
-        Their positions are generated using a Gaussian distribution centered on the rectangle.
-
-        All particle settings (except color) can be modified in this file by adjusting PARTICLE_CONFIG.
-        Particle color is now determined by the active theme from themes.py.
-
-        Parameters:
-            rect: A pygame.Rect representing the area within which particles will be spawned.
-        """
-        # Use the new config key for number of particles per spawn.
         count = PARTICLE_CONFIG.get("particles_per_spawn", 10)
-        
         center_x = (rect.left + rect.right) / 2
         center_y = (rect.top + rect.bottom) / 2
-        sigma_x = (rect.right - rect.left) / 4  # standard deviation for x
-        sigma_y = (rect.bottom - rect.top) / 4  # standard deviation for y
+        sigma_x = (rect.right - rect.left) / 4
+        sigma_y = (rect.bottom - rect.top) / 4
 
         for _ in range(count):
-            # Use Gaussian distribution centered on the rectangle's center.
             x = random.gauss(center_x, sigma_x)
             y = random.gauss(center_y, sigma_y)
-            # Clamp the values to remain within the rectangle.
             x = max(rect.left, min(x, rect.right))
             y = max(rect.top, min(y, rect.bottom))
             position = (x, y)
-            # Gentle downward bias: angle around 90° with slight variation.
             angle = random.uniform(80, 100)
             speed = random.uniform(*PARTICLE_CONFIG["gentle_speed_range"])
             velocity_vector = pygame.math.Vector2(1, 0).rotate(angle) * speed
-            # Use ACTIVE_THEME from the top-level import to determine particle color palette.
-            color = random.choice(ACTIVE_THEME.particle_color_palette)
-            # Gentle lifetime is default_lifetime * gentle_lifetime_multiplier.
+            # Use the gradually updated current_palette for particle color
+            color = random.choice(self.current_palette)
             lifetime = PARTICLE_CONFIG["default_lifetime"] * PARTICLE_CONFIG["gentle_lifetime_multiplier"]
             particle = Particle(
                 position=position,
@@ -135,49 +125,34 @@ class ParticleEffect:
             self.particles.append(particle)
 
     def update(self, dt: float) -> None:
-        """
-        Updates all particles, spawns new ones based solely on the interval timer,
-        and removes those that have expired.
+        # Gradually update current_palette toward the active theme's particle_color_palette
+        t = min(1.0, dt / self.palette_transition_duration)
+        self.current_palette = blend_palette(self.current_palette, self.config.theme.particle_color_palette, t)
 
-        Parameters:
-            dt: Delta time in seconds.
-        """
-        # Spawn particles only when the interval timer is reached.
         self.spawn_timer += dt
         if self.spawn_timer >= PARTICLE_CONFIG["continuous_spawn_interval"]:
             if self.spawn_rect is not None:
                 self.spawn_continuous_from_rect(self.spawn_rect)
-            self.spawn_timer = 0.0  # Reset the spawn timer.
-
-        # Update existing particles.
+            self.spawn_timer = 0.0
         for particle in self.particles:
             particle.update(dt)
         self.particles = [p for p in self.particles if p.lifetime > 0]
 
     def draw(self, screen: pygame.Surface) -> None:
-        """
-        Draws all active particles onto the provided screen.
-
-        Parameters:
-            screen: The pygame Surface to draw on.
-        """
         for particle in self.particles:
             particle.draw(screen)
 
-# Factory function to create a pre-configured ParticleEffect instance.
-def create_default_continuous_effect(spawn_rect: pygame.Rect = None) -> ParticleEffect:
+def create_default_continuous_effect(config: Config, spawn_rect: pygame.Rect = None) -> ParticleEffect:
     """
-    Returns a ParticleEffect configured for timed spawns.
-    Modify the parameters in PARTICLE_CONFIG to change the effect behavior.
-
-    Parameters:
-        spawn_rect: A pygame.Rect representing the area within which particles will be spawned.
+    effects/particle_effect.py - Factory function for creating a ParticleEffect.
+    Version: 1.2.3
     """
     return ParticleEffect(
-        color=(150, 200, 255),  # Fallback color; actual colors are chosen from the active theme.
+        config,
+        color=(150, 200, 255),  # Fallback color; actual colors are chosen from current_palette.
         radius=PARTICLE_CONFIG["particle_size"],
         shape="circle",
-        particle_count=0,  # Deprecated – use PARTICLE_CONFIG["particles_per_spawn"] instead.
+        particle_count=0,  # Deprecated – number of particles per spawn is now in the config.
         lifetime=PARTICLE_CONFIG["default_lifetime"],
         spawn_rect=spawn_rect
     )
