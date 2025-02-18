@@ -1,8 +1,8 @@
 """
 game_mode_selection_layer.py - Provides a selection layer for choosing game modes.
-Version: 1.0.1
+Version: 1.0.2
 Summary: Displays a list of available game modes from play_mode_registry; selecting a mode updates config.selected_game_mode and transitions to the Play scene.
-         This layer supports plug-and-play particle effects via the unified layer registry.
+         This layer supports plug-and-play particle effects via the unified layer registry and recalls the last selection.
 """
 
 import pygame
@@ -10,23 +10,24 @@ from ui.ui_elements import Button
 from layers.base_layer import BaseLayer
 from plugins.plugins import play_mode_registry
 from core.config import Config
-from typing import List, Optional, Callable
+from typing import List
 from ui.layout_constants import LayerZIndex, ButtonLayout, TitleLayout
 from core.controls import MENU_NAVIGATION
 from managers.scene_manager import SceneManager
 
 class GameModeSelectionLayer(BaseLayer):
-    def __init__(self, config: Config, font: pygame.font.Font, layer_manager, scene_manager: SceneManager,
-                 initial_selected_index: int = 0) -> None:
+    def __init__(self, config: Config, font: pygame.font.Font, layer_manager, scene_manager: SceneManager, parent_scene, initial_selected_index: int = 0) -> None:
         """
         Initializes the GameModeSelectionLayer.
-        Version: 1.0.1
+        Version: 1.0.2
         Summary: Lists all registered game modes and provides a callback to change scenes.
+                 Also accepts a parent_scene to remember the last selected index.
         """
         self.config = config
         self.font = font
         self.layer_manager = layer_manager
         self.scene_manager = scene_manager
+        self.parent_scene = parent_scene
         self.selected_index: int = initial_selected_index
         self.buttons: List[Button] = []
         self.title: str = "Select Game Mode"
@@ -36,7 +37,7 @@ class GameModeSelectionLayer(BaseLayer):
     def _setup_buttons(self) -> None:
         """
         Creates buttons for each available game mode and adds a 'Back' option.
-        Version: 1.0.1
+        Version: 1.0.2
         """
         # Get game mode keys from play_mode_registry and sort them
         game_mode_keys = sorted(play_mode_registry.keys())
@@ -73,9 +74,11 @@ class GameModeSelectionLayer(BaseLayer):
     def _on_button_pressed(self, key: str) -> None:
         """
         Callback when a button is pressed.
-        Version: 1.0.1
-        Summary: If 'Back' is selected, return to the main menu; otherwise, update the selected game mode and transition to Play.
+        Version: 1.0.2
+        Summary: If 'Back' is selected, returns to the Home scene; otherwise, updates the selected game mode and transitions to Play.
+                 Also updates the parent's last selection index.
         """
+        self.parent_scene.last_selection_index = self.selected_index
         if key.lower() == "back":
             self.scene_manager.set_scene("menu")
         else:
@@ -85,14 +88,14 @@ class GameModeSelectionLayer(BaseLayer):
     def update(self, dt: float) -> None:
         """
         Updates the selection layer.
-        Version: 1.0.1
+        Version: 1.0.2
         """
         pass
 
     def draw(self, screen: pygame.Surface) -> None:
         """
         Draws the game mode selection title and buttons.
-        Version: 1.0.1
+        Version: 1.0.2
         """
         title_surface = self.font.render(self.title, True, self.config.theme.title_color)
         title_x = (self.config.screen_width - title_surface.get_width()) // 2
@@ -104,7 +107,7 @@ class GameModeSelectionLayer(BaseLayer):
     def on_input(self, event: pygame.event.Event) -> None:
         """
         Handles keyboard input for navigating the selection.
-        Version: 1.0.1
+        Version: 1.0.2
         """
         if event.type == pygame.KEYDOWN:
             if event.key == MENU_NAVIGATION["up"]:
@@ -113,3 +116,5 @@ class GameModeSelectionLayer(BaseLayer):
                 self.selected_index = (self.selected_index + 1) % len(self.buttons)
             elif event.key in MENU_NAVIGATION["select"]:
                 self.buttons[self.selected_index].callback()
+            # Update parent's last selection index on navigation
+            self.parent_scene.last_selection_index = self.selected_index
