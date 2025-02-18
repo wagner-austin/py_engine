@@ -1,6 +1,6 @@
 """
 scene_manager.py - Scene manager for handling scene transitions and centralized input.
-Version: 1.1.1
+Version: 1.1.2
 """
 
 import pygame
@@ -19,9 +19,9 @@ class SceneManager:
         """
         Initializes the SceneManager with the provided configuration and input manager.
 
-        Parameters:
-            config (Config): The global configuration object.
-            input_manager (InputManager): The input manager responsible for event handling.
+        Parameters:  
+            config (Config): The global configuration object.  
+            input_manager (InputManager): The input manager responsible for event handling.  
         """
         self.config: Config = config
         self.input_manager: InputManager = input_manager
@@ -34,7 +34,7 @@ class SceneManager:
         """
         Registers a scene with a given name.
 
-        Parameters:
+        Parameters:  
             name (str): The key for the scene.
             scene (BaseScene): The scene instance.
         """
@@ -44,7 +44,7 @@ class SceneManager:
         """
         Sets the active scene. Relies on the scene's on_enter() method to populate layers dynamically.
 
-        Parameters:
+        Parameters:  
             name (str): The key of the scene to activate.
             transition_type (Optional[str]): The type of transition to use (default is ACTIVE_TRANSITION).
             duration (float): The duration of the transition in seconds.
@@ -72,7 +72,7 @@ class SceneManager:
         """
         Updates the current scene or active transition based on the elapsed time.
 
-        Parameters:
+        Parameters:  
             dt (float): Delta time in seconds. Defaults to 1.0 / fps if not provided.
         """
         if dt is None:
@@ -89,7 +89,7 @@ class SceneManager:
         """
         Draws the current scene or active transition onto the provided screen.
 
-        Parameters:
+        Parameters:  
             screen (pygame.Surface): The surface on which to draw the scene.
         """
         if self.transition:
@@ -99,22 +99,19 @@ class SceneManager:
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Forwards input events to the current scene if no transition is active.
+        Forwards input events to the current scene regardless of an active transition.
 
-        Parameters:
+        Parameters:  
             event (pygame.event.Event): The input event to process.
         """
-        if self.transition:
-            # Optionally, handle input during a transition if desired.
-            pass
-        elif self.current_scene:
+        if self.current_scene:
             self.current_scene.on_input(event)
 
     def on_global_input(self, event: pygame.event.Event) -> None:
         """
         Handles global input events by switching to the main menu.
 
-        Parameters:
+        Parameters:  
             event (pygame.event.Event): The global input event.
         """
         self.set_scene("menu")
