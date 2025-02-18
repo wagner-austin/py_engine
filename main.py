@@ -54,7 +54,7 @@ scene_manager = SceneManager(config, input_manager)
 #        print(f"Layer key: '{key}', category: '{info['category']}', class: {info['class']}")
 #else:
 #    print("Layer registry is empty!")
-#print("========================================")
+#print("========================================")()
 
 # -----------------------------------------------------------------------------
 # Create and register scenes.
