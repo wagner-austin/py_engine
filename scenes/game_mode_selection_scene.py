@@ -1,8 +1,6 @@
 """
 game_mode_selection_scene.py - Scene for selecting a game mode using a plug-and-play particle effect.
 Version: 1.0.2
-Summary: Provides a dedicated scene where the user can choose a game mode from available options.
-         Integrates a plug-and-play particle effect layer if available and recalls the last selected option.
 """
 
 import pygame
@@ -19,10 +17,8 @@ class GameModeSelectionScene(BaseScene):
         """
         GameModeSelectionScene - Initializes the scene for selecting a game mode.
         Version: 1.0.2
-        Summary: Uses a dedicated selection layer for game modes, integrates plug-and-play particle effects,
-                 and remembers the last selected option.
         """
-        extra_layers = []  # No extra layers initially.
+        extra_layers = []
         super().__init__("GameModeSelection", config, font, layer_manager, extra_layers)
         self.scene_manager = scene_manager
         self.last_selection_index = 0
@@ -31,12 +27,11 @@ class GameModeSelectionScene(BaseScene):
         """
         Called when the scene becomes active.
         Version: 1.0.2
-        Summary: Clears layers and adds the GameModeSelectionLayer (passing itself as parent) along with an optional particle effect layer.
         """
         super().on_enter()
         selection_layer = GameModeSelectionLayer(
-            self.config,
             self.font,
+            self.config,
             self.layer_manager,
             self.scene_manager,
             parent_scene=self,
@@ -44,10 +39,9 @@ class GameModeSelectionScene(BaseScene):
         )
         self.layer_manager.add_layer(selection_layer)
 
-        # Integrate plug-and-play particle effect if available
         if "menu_particle_effect" in layer_registry:
             particle_cls = layer_registry["menu_particle_effect"]["class"]
-            particle_layer_instance = particle_cls(self.config, selection_layer)
+            particle_layer_instance = particle_cls(self.font, self.config, selection_layer)
             self.layer_manager.add_layer(particle_layer_instance)
 
         print("Entered Game Mode Selection Scene")

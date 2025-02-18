@@ -1,12 +1,11 @@
 """
 theme_selection_layer.py - Provides a layer for selecting and modifying the application theme.
 Version: 1.0.7
-Summary: Added a gradual theme transition to smooth out abrupt color changes, including font colors.
 """
 
 import pygame
 from ui.ui_elements import Button
-from layers.base_layer import BaseLayer
+from .base_layer import BaseLayer
 from plugins.plugins import theme_registry
 from core.config import Config
 from typing import List, Optional, Callable, Tuple
@@ -49,17 +48,25 @@ def blend_themes(old_theme: Theme, new_theme: Theme, t: float) -> Theme:
     )
 
 class ThemeSelectionLayer(BaseLayer):
-    def __init__(self, config: Config, font: pygame.font.Font, layer_manager, parent_scene, 
+    def __init__(self, font: pygame.font.Font, config: Config, layer_manager, parent_scene, 
                  refresh_callback: Optional[Callable[[], None]] = None, 
                  back_callback: Optional[Callable[[], None]] = None,
                  initial_selected_index: int = 0) -> None:
         """
-        theme_selection_layer.py - Initializes the ThemeSelectionLayer.
+        Initializes the ThemeSelectionLayer with standardized constructor signature.
         Version: 1.0.7
-        Summary: Supports a gradual theme transition for smoother color changes.
+
+        Parameters:
+            font (pygame.font.Font): The font used for rendering.
+            config (Config): The configuration object.
+            layer_manager: The layer manager to add/remove layers.
+            parent_scene: The parent scene that owns this layer.
+            refresh_callback (Optional[Callable[[], None]]): Callback to refresh the scene after transition.
+            back_callback (Optional[Callable[[], None]]): Callback for back navigation.
+            initial_selected_index (int, optional): The initial selected index. Defaults to 0.
         """
-        self.config = config
-        self.font = font
+        self.font: pygame.font.Font = font
+        self.config: Config = config
         self.layer_manager = layer_manager
         self.parent_scene = parent_scene
         self.refresh_callback = refresh_callback
@@ -69,11 +76,10 @@ class ThemeSelectionLayer(BaseLayer):
         self.title: str = "Select Theme"
         self.z = LayerZIndex.MENU + 1
         self._setup_buttons()
-        # Variables for gradual theme transition
         self.old_theme: Optional[Theme] = None
         self.new_theme: Optional[Theme] = None
         self.theme_transition_elapsed: float = 0.0
-        self.theme_transition_duration: float = 1.0  # Transition duration (in seconds)
+        self.theme_transition_duration: float = 1.0
 
     def _setup_buttons(self) -> None:
         """
@@ -116,9 +122,9 @@ class ThemeSelectionLayer(BaseLayer):
     def _on_button_pressed(self, key: str) -> None:
         """
         Callback when a button is pressed.
-        Stores the current selection in the parent scene.
-        If a theme is selected, begins a gradual transition from the current theme to the new theme.
         Version: 1.0.7
+
+        If a theme is selected, begins a gradual transition from the current theme to the new theme.
         """
         self.parent_scene.last_theme_index = self.selected_index
         if key == "Back":
@@ -129,19 +135,17 @@ class ThemeSelectionLayer(BaseLayer):
         else:
             new_theme = theme_registry.get(key)
             if new_theme:
-                # Start gradual transition from the current theme to the selected new theme.
                 self.old_theme = self.config.theme
                 self.new_theme = new_theme
                 self.theme_transition_elapsed = 0.0
-            # Do not remove the layer immediately; wait for transition completion.
 
     def update(self, dt: float) -> None:
         """
         Updates the layer.
-        If a theme transition is active, gradually update the config.theme and update button colors.
         Version: 1.0.7
+
+        Gradually updates the config.theme based on the transition progress.
         """
-        # Update button colors to reflect the current theme gradually.
         for button in self.buttons:
             button.normal_color = self.config.theme.button_normal_color
             button.selected_color = self.config.theme.button_selected_color

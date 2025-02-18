@@ -1,6 +1,6 @@
 """
 settings_scene.py - Basic Settings scene allowing theme modification with particle effects.
-Version: 1.1.5
+Version: 1.1.6
 """
 
 from plugins.plugins import register_scene
@@ -15,7 +15,7 @@ class SettingsScene(BaseScene):
     def __init__(self, scene_manager: SceneManager, font: pygame.font.Font, config: Config, layer_manager: LayerManager) -> None:
         """
         Initializes the SettingsScene with static configuration.
-        Version: 1.1.5
+        Version: 1.1.6
         """
         extra_layers = []  # No extra layers for now.
         super().__init__("Settings", config, font, layer_manager, extra_layers)
@@ -37,9 +37,10 @@ class SettingsScene(BaseScene):
         """
         super().on_enter()
         from layers.theme_selection_layer import ThemeSelectionLayer
+        # Correct the order: first font, then config, then layer_manager, etc.
         theme_layer = ThemeSelectionLayer(
-            self.config,
             self.font,
+            self.config,
             self.layer_manager,
             parent_scene=self,
             refresh_callback=self.refresh_scene,
@@ -50,6 +51,7 @@ class SettingsScene(BaseScene):
         from plugins.plugins import layer_registry
         if "menu_particle_effect" in layer_registry:
             particle_cls = layer_registry["menu_particle_effect"]["class"]
-            particle_layer_instance = particle_cls(self.config, theme_layer)
+            # Update the parameter order here as well
+            particle_layer_instance = particle_cls(self.font, self.config, theme_layer)
             self.layer_manager.add_layer(particle_layer_instance)
         print("Entered Settings Scene with Theme Selection and Particle Effect")

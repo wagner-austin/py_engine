@@ -1,9 +1,6 @@
 """
 menu_scene.py - Main menu scene built using a layered system with an interactive menu layer.
 Version: 2.7.1
-Summary: Initializes the MenuScene, now updated to offer a "Game Mode" option that transitions
-         to the game mode selection scene. Uses a unified layer registry to include plug-and-play
-         particle effects if available.
 """
 
 from plugins.plugins import register_scene, layer_registry
@@ -33,17 +30,16 @@ class MenuScene(BaseScene):
         super().on_enter()
         if "menu_layer" in layer_registry:
             menu_cls = layer_registry["menu_layer"]["class"]
-            # Updated menu items: "Game Mode" now leads to the game mode selection scene.
             menu_layer_instance = menu_cls(
-                self.scene_manager,
                 self.font,
-                [("Play", "game_mode_selection"), ("Settings", "settings"), ("Quit", "quit")],
                 self.config,
+                self.scene_manager,
+                [("Play", "game_mode_selection"), ("Settings", "settings"), ("Quit", "quit")],
                 initial_selected_index=self.last_menu_index
             )
             self.layer_manager.add_layer(menu_layer_instance)
             if "menu_particle_effect" in layer_registry:
                 particle_cls = layer_registry["menu_particle_effect"]["class"]
-                particle_layer_instance = particle_cls(self.config, menu_layer_instance)
+                particle_layer_instance = particle_cls(self.font, self.config, menu_layer_instance)
                 self.layer_manager.add_layer(particle_layer_instance)
         print("Entered Menu Scene")

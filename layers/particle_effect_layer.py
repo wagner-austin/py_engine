@@ -1,25 +1,29 @@
 """
 particle_effect_layer.py - Implements a plugin-based layer for spawning particles around the menu's selected button.
-Version: 2.0.1
-Summary: Updated to pass config to the particle effect so that particle colors change according to the active theme.
+Version: 2.0.2
 """
 
 import pygame
 from typing import Optional
 from plugins.plugins import register_layer
-from layers.base_layer import BaseLayer
+from .base_layer import BaseLayer
 from core.config import Config
 from effects.particle_effect import create_default_continuous_effect
 from layers.menu_layer import MenuLayer
 
 @register_layer("menu_particle_effect", "menu_only")
 class MenuParticleEffectLayer(BaseLayer):
-    def __init__(self, config: Config, menu_layer: MenuLayer) -> None:
+    def __init__(self, font: pygame.font.Font, config: Config, menu_layer: MenuLayer) -> None:
         """
-        particle_effect_layer.py - Initializes the MenuParticleEffectLayer.
-        Version: 2.0.1
-        Summary: Passes config to particle effect for dynamic theme-based particle colors.
+        Initializes the MenuParticleEffectLayer with standardized constructor signature.
+        Version: 2.0.2
+
+        Parameters:
+            font (pygame.font.Font): The font used for rendering.
+            config (Config): The configuration object.
+            menu_layer (MenuLayer): The associated menu layer.
         """
+        self.font: pygame.font.Font = font
         self.config: Config = config
         self.menu_layer: MenuLayer = menu_layer
         self.z = 2

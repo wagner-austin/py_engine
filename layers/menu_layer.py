@@ -1,6 +1,6 @@
 """
 menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
-Version: 2.13.1
+Version: 2.13.2
 """
 
 import pygame
@@ -15,21 +15,28 @@ from plugins.plugins import register_layer
 
 @register_layer("menu_layer", "menu_only")
 class MenuLayer(BaseLayer):
-    def __init__(self, scene_manager: SceneManager, font: pygame.font.Font, menu_items: List[Tuple[str, str]], config: Config, initial_selected_index: int = 0) -> None:
+    def __init__(self, font: pygame.font.Font, config: Config, scene_manager: SceneManager, menu_items: List[Tuple[str, str]], initial_selected_index: int = 0) -> None:
         """
-        menu_layer.py - Initializes the MenuLayer with static configuration.
-        Version: 2.13.1
+        Initializes the MenuLayer with standardized constructor signature.
+        Version: 2.13.2
+
+        Parameters:
+            font (pygame.font.Font): The font used for rendering.
+            config (Config): The configuration object.
+            scene_manager (SceneManager): The scene manager for navigation.
+            menu_items (List[Tuple[str, str]]): A list of tuples containing button label and target scene key.
+            initial_selected_index (int, optional): The initial selected button index. Defaults to 0.
         """
-        self.z: int = LayerZIndex.MENU
-        self.scene_manager: SceneManager = scene_manager
         self.font: pygame.font.Font = font
         self.config: Config = config
+        self.scene_manager: SceneManager = scene_manager
         self.menu_items: List[Tuple[str, str]] = menu_items
         self.selected_index: int = initial_selected_index
         self.last_nav_time: int = 0
         self.debounce_interval: int = MenuLayout.DEBOUNCE_INTERVAL_MS
         self.buttons: List[Button] = []
         self.title_y: int = 0
+        self.z: int = LayerZIndex.MENU
         self._setup_buttons()
 
     def _setup_buttons(self) -> None:
