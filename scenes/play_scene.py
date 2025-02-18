@@ -29,6 +29,7 @@ class PlayScene(BaseScene):
         """
         super().on_enter()
         from layers.play_area_layer import PlayAreaLayer
-        play_area_layer = PlayAreaLayer(self.font, self.config, self.layer_manager, game_key="default")
+        # Use the selected game mode from the configuration rather than always "default"
+        play_area_layer = PlayAreaLayer(self.font, self.config, self.layer_manager, game_key=self.config.selected_game_mode)
         self.layer_manager.add_layer(play_area_layer)
         print("Entered Play Scene with dedicated play area layer.")

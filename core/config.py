@@ -1,7 +1,7 @@
 """
 config.py - Global configuration using a dataclass.
-
-Version: 1.5 (updated with Theme selection and global input keys)
+Version: 1.5.1
+Summary: Updated with Theme selection, global input keys, and a new attribute for the selected game mode.
 Note: The Theme dataclass and theme instances are now defined in themes.py.
 To change the active theme, update the ACTIVE_THEME variable in themes.py.
 """
@@ -22,6 +22,7 @@ class Config:
     screen_height: int = 600
     theme: Theme = field(default_factory=lambda: ACTIVE_THEME)
     global_input_keys: Tuple[int, int] = GLOBAL_INPUT_KEYS  # Use centralized keys
+    selected_game_mode: str = "default"  # New attribute for the selected game mode
 
     def update_dimensions(self, width: int, height: int) -> None:
         """
