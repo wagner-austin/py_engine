@@ -2,6 +2,8 @@
 main.py - Main entry point for the application.
 Version: 1.5.3
 Summary: Initializes pygame, loads plugins, creates managers, and registers scenes.
+         Now includes the Game Mode Selection scene to enable a Home -> Game Mode Selection ->
+         Play flow without modifying game mode modules. Automatically loads new game modes.
 """
 
 import pygame
@@ -20,6 +22,7 @@ PLUGIN_PACKAGES = [
     "effects",   # Effect layers (snow, rain, etc.)
     "scenes",    # Scene definitions
     "themes",    # Theme definitions
+    "game_modes" # Game mode plugins are now automatically loaded
 ]
 load_all_plugins(PLUGIN_PACKAGES)
 
@@ -47,28 +50,21 @@ layer_manager = LayerManager()
 scene_manager = SceneManager(config, input_manager)
 
 # -----------------------------------------------------------------------------
-# Debug: Print the layer registry contents at startup.
-#print("=== Main: Layer registry at startup ===")
-#if layer_registry:
-#    for key, info in layer_registry.items():
-#        print(f"Layer key: '{key}', category: '{info['category']}', class: {info['class']}")
-#else:
-#    print("Layer registry is empty!")
-#print("========================================")()
-
-# -----------------------------------------------------------------------------
 # Create and register scenes.
 from scenes.menu_scene import MenuScene
 from scenes.play_scene import PlayScene
 from scenes.settings_scene import SettingsScene
+from scenes.game_mode_selection_scene import GameModeSelectionScene
 
 menu_scene = MenuScene(scene_manager, font, config, layer_manager)
 play_scene = PlayScene(font, config, layer_manager)
 settings_scene = SettingsScene(scene_manager, font, config, layer_manager)
+game_mode_selection_scene = GameModeSelectionScene(scene_manager, font, config, layer_manager)
 
 scene_manager.add_scene("menu", menu_scene)
 scene_manager.add_scene("play", play_scene)
 scene_manager.add_scene("settings", settings_scene)
+scene_manager.add_scene("game_mode_selection", game_mode_selection_scene)
 
 # Start with the main menu.
 scene_manager.set_scene("menu")

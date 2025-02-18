@@ -9,7 +9,7 @@ from core.config import Config
 from managers.layer_manager import LayerManager
 from plugins.plugins import register_play_mode
 
-@register_play_mode("space_shooter")
+@register_play_mode("Space Shooter")
 class SpaceShooter:
     """
     space_shooter.py - A placeholder for the Space Shooter game mode.
