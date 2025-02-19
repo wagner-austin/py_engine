@@ -1,8 +1,13 @@
 """
-space_shooter.py - A modular Space Shooter game mode with independent effects.
-Version: 1.1.2
-Summary: Implements WASD/arrow-key movement with directional rotation, spacebar firing with bullet effects,
-         and isolates game logic (including effects) within its own folder for plug-and-play flexibility.
+space_shooter.py
+--------------------------------------------------------------------------------
+A modular Space Shooter game mode with independent effects, adapted for short 
+thrust impulses and correct rotation directions on Android (KEYDOWN-only).
+Version: 1.4.0
+Summary: 
+  1) Applies a short forward/reverse thrust impulse on W/S key presses. 
+  2) Adds the ship's velocity to projectile velocity on firing. 
+  3) Reverses rotation logic so A rotates left, D rotates right.
 """
 
 import math
@@ -13,140 +18,210 @@ from plugins.plugins import register_play_mode
 
 @register_play_mode("Space Shooter")
 class SpaceShooter:
+    """
+    A plug-and-play "Space Shooter" mode adapted for KEYDOWN-only environments 
+    (e.g. Android). Press W or S to get a short thrust impulse forward or in reverse, 
+    press A/D to toggle rotation, and SPACE to fire projectiles inheriting current 
+    ship velocity.
+    """
+
+    # Unique dictionary of controls for Space Shooter (defined here for modularity)
+    SPACE_SHOOTER_KEYS = {
+        "rotate_left": pygame.K_a,
+        "rotate_right": pygame.K_d,
+        "thrust_forward": pygame.K_w,
+        "thrust_reverse": pygame.K_s,
+        "fire": pygame.K_SPACE,
+    }
+
     def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager) -> None:
         """
-        Initializes the Space Shooter mode.
-        Version: 1.1.2
-        Summary: Sets up the spaceship, its effect (bullets), and initial properties.
+        Initializes the SpaceShooter game mode with short thrust impulses.
+
+        Parameters:
+            font (pygame.font.Font): The font used to render on-screen text.
+            config (Config): Global configuration object.
+            layer_manager (LayerManager): Manager for layered drawing (unused here but required).
         """
         self.font = font
         self.config = config
         self.layer_manager = layer_manager
-        # Initialize spaceship position at the center of the screen.
+
+        # Ship position (center of screen), velocity, and orientation
         self.spaceship_pos = [config.screen_width // 2, config.screen_height // 2]
-        # Velocity in pixels per second.
-        self.spaceship_vel = [0, 0]
-        # Initial facing angle (in degrees).
-        self.spaceship_angle = 0
-        # Create a dedicated spaceship surface with a drawn triangle.
+        self.spaceship_vel = [0.0, 0.0]
+        self.spaceship_angle = 0.0
+
+        # Toggle booleans for rotation
+        self.rotating_left = False
+        self.rotating_right = False
+
+        # Timers for short thrust impulses
+        self.THURST_DURATION = 0.5  # seconds
+        self.thrust_timer_forward = 0.0
+        self.thrust_timer_reverse = 0.0
+
+        # Drawing and movement constants
+        self.ROTATION_SPEED = 120.0     # degrees per second
+        self.ACCELERATION = 200.0       # px/sec^2
+        self.FRICTION_FACTOR = 0.995    # velocity multiplier
+
+        # Prepare the spaceship graphic (triangle)
         self.spaceship_surface = self.create_spaceship_surface()
-        # List to manage bullet effects.
+
+        # Track bullets in-flight
         self.bullets = []
+        self.BULLET_SPEED = 300.0
 
     def create_spaceship_surface(self) -> pygame.Surface:
         """
-        Creates and returns a surface with a drawn spaceship.
-        Version: 1.1.2
-        Summary: The spaceship is represented as a yellow triangle.
+        Creates and returns a small triangular surface representing the spaceship.
+
+        Returns:
+            pygame.Surface: A surface with a yellow triangle (tip at the right).
         """
         width, height = 40, 30
         surf = pygame.Surface((width, height), pygame.SRCALPHA)
-        # Draw a triangle: tip at the right center, base at the left.
         points = [(width, height // 2), (0, 0), (0, height)]
         pygame.draw.polygon(surf, (255, 255, 0), points)
         return surf
 
     def on_enter(self) -> None:
         """
-        Called when the game mode starts.
-        Version: 1.1.2
+        Called when this game mode starts. Currently does nothing.
         """
-        # (Optional logging or initialization can be added here.)
         pass
 
     def update(self, dt: float) -> None:
         """
-        Updates the spaceship position, rotation, and active bullet effects.
-        Version: 1.1.2
+        Updates the ship's position, handles continuous rotation, applies short thrust 
+        while timers last, and updates bullets.
+
+        Parameters:
+            dt (float): Delta time in seconds since the last frame.
         """
-        # Update spaceship position.
+        # Rotation toggles: A => increase angle (turn left), D => decrease angle (turn right).
+        if self.rotating_left and not self.rotating_right:
+            self.spaceship_angle += self.ROTATION_SPEED * dt
+        elif self.rotating_right and not self.rotating_left:
+            self.spaceship_angle -= self.ROTATION_SPEED * dt
+
+        # Apply short forward thrust if timer is active
+        if self.thrust_timer_forward > 0:
+            rad = math.radians(self.spaceship_angle)
+            self.spaceship_vel[0] += math.cos(rad) * self.ACCELERATION * dt
+            self.spaceship_vel[1] -= math.sin(rad) * self.ACCELERATION * dt
+            self.thrust_timer_forward -= dt
+
+        # Apply short reverse thrust if timer is active
+        if self.thrust_timer_reverse > 0:
+            rad = math.radians(self.spaceship_angle)
+            self.spaceship_vel[0] -= math.cos(rad) * self.ACCELERATION * dt
+            self.spaceship_vel[1] += math.sin(rad) * self.ACCELERATION * dt
+            self.thrust_timer_reverse -= dt
+
+        # Apply friction
+        self.spaceship_vel[0] *= self.FRICTION_FACTOR
+        self.spaceship_vel[1] *= self.FRICTION_FACTOR
+
+        # Update position
         self.spaceship_pos[0] += self.spaceship_vel[0] * dt
         self.spaceship_pos[1] += self.spaceship_vel[1] * dt
 
-        # Wrap around the screen boundaries.
+        # Screen wrap
         if self.spaceship_pos[0] > self.config.screen_width:
             self.spaceship_pos[0] = 0
         elif self.spaceship_pos[0] < 0:
             self.spaceship_pos[0] = self.config.screen_width
-
         if self.spaceship_pos[1] > self.config.screen_height:
             self.spaceship_pos[1] = 0
         elif self.spaceship_pos[1] < 0:
             self.spaceship_pos[1] = self.config.screen_height
 
-        # Update spaceship rotation based on velocity.
-        vx, vy = self.spaceship_vel
-        if vx != 0 or vy != 0:
-            # Compute angle so that 0 degrees faces right.
-            self.spaceship_angle = math.degrees(math.atan2(-vy, vx))
-
-        # Update bullets.
+        # Update bullets
         for bullet in self.bullets:
-            bullet['pos'][0] += bullet['vel'][0] * dt
-            bullet['pos'][1] += bullet['vel'][1] * dt
-
-        # Remove bullets that have left the screen.
+            bullet["pos"][0] += bullet["vel"][0] * dt
+            bullet["pos"][1] += bullet["vel"][1] * dt
+        # Remove bullets that leave the screen
         self.bullets = [
             b for b in self.bullets
-            if 0 <= b['pos'][0] <= self.config.screen_width and 0 <= b['pos'][1] <= self.config.screen_height
+            if 0 <= b["pos"][0] <= self.config.screen_width
+               and 0 <= b["pos"][1] <= self.config.screen_height
         ]
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Draws the rotated spaceship and active bullet effects.
-        Version: 1.1.2
+        Draws the rotated spaceship and active bullets, plus a mode label.
+
+        Parameters:
+            screen (pygame.Surface): The surface on which to draw.
         """
-        # Rotate the spaceship surface according to the current angle.
-        rotated_surface = pygame.transform.rotate(self.spaceship_surface, self.spaceship_angle)
-        rotated_rect = rotated_surface.get_rect(center=(int(self.spaceship_pos[0]), int(self.spaceship_pos[1])))
-        screen.blit(rotated_surface, rotated_rect)
+        # Rotate the ship to the current angle
+        rotated_ship = pygame.transform.rotate(self.spaceship_surface, self.spaceship_angle)
+        ship_rect = rotated_ship.get_rect(center=(int(self.spaceship_pos[0]), int(self.spaceship_pos[1])))
+        screen.blit(rotated_ship, ship_rect)
 
-        # Draw bullets (as red circles).
+        # Bullets (red circles)
         for bullet in self.bullets:
-            pos = bullet['pos']
-            pygame.draw.circle(screen, (255, 0, 0), (int(pos[0]), int(pos[1])), 5)
+            px, py = int(bullet["pos"][0]), int(bullet["pos"][1])
+            pygame.draw.circle(screen, (255, 0, 0), (px, py), 5)
 
-        # Draw a label to indicate the mode.
+        # Label the mode at top-left
         label = self.font.render("Space Shooter Mode", True, self.config.theme.font_color)
         screen.blit(label, (10, 10))
 
     def fire(self) -> None:
         """
-        Fires a bullet effect from the spaceship.
-        Version: 1.1.2
-        Summary: Creates a bullet that travels in the direction the spaceship is facing.
+        Spawns a new bullet whose velocity is the sum of ship velocity and bullet speed 
+        in the facing direction.
         """
-        bullet_speed = 300  # Pixels per second.
-        # Convert the current angle to a direction vector.
         rad = math.radians(self.spaceship_angle)
-        dir_x = math.cos(rad)
-        dir_y = -math.sin(rad)
+        vx = self.BULLET_SPEED * math.cos(rad)
+        vy = -self.BULLET_SPEED * math.sin(rad)
+
+        # Inherit current ship velocity
+        vx += self.spaceship_vel[0]
+        vy += self.spaceship_vel[1]
+
         bullet = {
-            'pos': self.spaceship_pos.copy(),
-            'vel': [bullet_speed * dir_x, bullet_speed * dir_y]
+            "pos": [self.spaceship_pos[0], self.spaceship_pos[1]],
+            "vel": [vx, vy]
         }
         self.bullets.append(bullet)
-        # In the future, this firing action can trigger additional effects (damage, particles, etc.) via a dedicated effects layer.
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Handles input for movement and firing.
-        Version: 1.1.2
-        Summary: Supports both arrow keys and WASD for movement, with spacebar triggering firing.
+        Handles KEYDOWN events for toggling rotation (A/D) or applying short thrust (W/S), 
+        or firing a bullet.
+
+        Parameters:
+            event (pygame.event.Event): A Pygame event, dispatched by the InputManager.
         """
         if event.type == pygame.KEYDOWN:
-            if event.key in (pygame.K_LEFT, pygame.K_a):
-                self.spaceship_vel[0] = -100
-            elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                self.spaceship_vel[0] = 100
-            elif event.key in (pygame.K_UP, pygame.K_w):
-                self.spaceship_vel[1] = -100
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
-                self.spaceship_vel[1] = 100
-            elif event.key == pygame.K_SPACE:
+            if event.key == self.SPACE_SHOOTER_KEYS["fire"]:
                 self.fire()
-        elif event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
-                self.spaceship_vel[0] = 0
-            elif event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
-                self.spaceship_vel[1] = 0
+
+            elif event.key == self.SPACE_SHOOTER_KEYS["rotate_left"]:
+                # Toggle rotating left
+                if self.rotating_left:
+                    self.rotating_left = False
+                else:
+                    # Ensure rotating_right is off if we switch direction
+                    self.rotating_right = False
+                    self.rotating_left = True
+
+            elif event.key == self.SPACE_SHOOTER_KEYS["rotate_right"]:
+                # Toggle rotating right
+                if self.rotating_right:
+                    self.rotating_right = False
+                else:
+                    self.rotating_left = False
+                    self.rotating_right = True
+
+            elif event.key == self.SPACE_SHOOTER_KEYS["thrust_forward"]:
+                # Apply a short forward impulse
+                self.thrust_timer_forward = self.THURST_DURATION
+
+            elif event.key == self.SPACE_SHOOTER_KEYS["thrust_reverse"]:
+                # Apply a short reverse impulse
+                self.thrust_timer_reverse = self.THURST_DURATION
