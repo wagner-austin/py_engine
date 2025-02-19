@@ -1,6 +1,8 @@
 """
-art_layers.py - Provides art layers for universal background and foreground art.
-Version: 1.1.1
+art_layers.py
+-------------
+Provides art layers for universal background and foreground art.
+Version: 1.3.0
 """
 
 import pygame
@@ -8,7 +10,7 @@ import math
 from typing import List
 from assets.art_assets import STAR_ART, BACKGROUND_ART
 from .base_layer import BaseLayer
-from ui.layout_constants import ArtLayout, LayerZIndex, ArtColors
+from ui.layout_constants import ArtLayout, LayerZIndex
 from core.config import Config
 from plugins.plugins import register_layer
 
@@ -73,6 +75,9 @@ class StarArtLayer(BaseLayer):
         Parameters:
             screen (pygame.Surface): The surface on which to draw the star art.
         """
+        # Read from the theme's star_text_color
+        star_color = self.config.theme.star_text_color
+
         top_margin: int = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
         bottom_margin: int = self.config.scale_value(ArtLayout.STAR_MARGIN_FACTOR)
         available_height: int = self.config.screen_height - top_margin - bottom_margin
@@ -81,16 +86,16 @@ class StarArtLayer(BaseLayer):
         for i, line in enumerate(self.art):
             stretched_line: str = stretch_line(line, self.font, self.config.screen_width)
             y: float = top_margin + i * spacing
-            text_surface: pygame.Surface = self.font.render(stretched_line, True, ArtColors.STAR_TEXT)
+            text_surface: pygame.Surface = self.font.render(stretched_line, True, star_color)
             text_rect: pygame.Rect = text_surface.get_rect(
                 center=(self.config.screen_width // 2, int(y))
             )
             screen.blit(text_surface, text_rect)
 
-#@register_layer:("background_art", "background")
+@register_layer("background_art", "background")
 class BackGroundArtLayer(BaseLayer):
     """
-    Layer for displaying background art in the foreground.
+    Layer for displaying background art in the background.
     """
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
@@ -123,9 +128,12 @@ class BackGroundArtLayer(BaseLayer):
         Parameters:
             screen (pygame.Surface): The surface on which to draw the background art.
         """
-        y: int = int(self.config.screen_height * 0.5)  # Using 0.5 as a vertical factor, adjust as needed.
+        # Read from the theme's background_text_color
+        bg_color = self.config.theme.background_text_color
+
+        y: int = int(self.config.screen_height * 0.5)
         for line in self.art:
-            text_surface: pygame.Surface = self.font.render(line, True, ArtColors.BACKGROUND_TEXT)
+            text_surface: pygame.Surface = self.font.render(line, True, bg_color)
             text_rect: pygame.Rect = text_surface.get_rect(
                 center=(self.config.screen_width // 2, y)
             )

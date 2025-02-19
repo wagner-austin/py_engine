@@ -1,6 +1,8 @@
 """
-border_layer.py - Provides the border layer that draws a border around the screen.
-Version: 1.1.1
+border_layer.py
+---------------
+Provides the border layer that draws a border around the screen.
+Version: 1.2.0
 """
 
 import pygame
@@ -23,17 +25,21 @@ class BorderLayer(BaseLayer):
         self.font: pygame.font.Font = font
         self.config: Config = config
         self.z: int = LayerZIndex.BORDER
-        self.border_color = self.config.theme.border_color
-        self.persistent: bool = True
+        self.persistent: bool = True  # Remain visible through transitions
 
     def update(self, dt: float) -> None:
         pass
 
     def draw(self, screen: pygame.Surface) -> None:
+        """
+        Draws the border using the current theme's border color.
+        Reads the color each time to allow dynamic updates when the theme changes.
+        """
         thickness: int = self.config.scale_value(BorderLayout.THICKNESS_FACTOR)
+        color = self.config.theme.border_color  # read dynamically from the theme
         pygame.draw.rect(
             screen,
-            self.border_color,
+            color,
             (0, 0, self.config.screen_width, self.config.screen_height),
             thickness,
         )

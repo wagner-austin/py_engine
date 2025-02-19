@@ -1,15 +1,16 @@
 """
 effect_layers.py - Provides effect layers such as the rain effect and snow effect.
-Version: 1.2.1
+Version: 1.2.2 (fixed references to theme-based rain/snow colors)
 """
 
 import pygame
 import random
 from typing import Dict, List
 from layers.base_layer import BaseLayer
-from ui.layout_constants import LayerZIndex, EffectColors
+from ui.layout_constants import LayerZIndex  # Removed EffectColors import
 from core.config import Config
 from plugins.plugins import register_layer
+
 
 @register_layer("rain_effect", "effect")
 class RainEffectLayer(BaseLayer):
@@ -24,7 +25,7 @@ class RainEffectLayer(BaseLayer):
         self.config: Config = config
         self.lines: List[Dict[str, float]] = []
         self.num_lines: int = 50
-        
+
         self.persistent = True  # Mark this layer as persistent to maintain state across scenes.
         for _ in range(self.num_lines):
             x: float = random.uniform(0, self.config.screen_width)
@@ -52,11 +53,13 @@ class RainEffectLayer(BaseLayer):
         Parameters:
             screen (pygame.Surface): The surface on which to draw the rain effect.
         """
-        color = EffectColors.RAIN_EFFECT
+        # Use the theme's rain color
+        color = self.config.theme.rain_color
         for line in self.lines:
             start_pos = (int(line["x"]), int(line["y"]))
             end_pos = (int(line["x"]), int(line["y"] + line["length"]))
             pygame.draw.line(screen, color, start_pos, end_pos, 1)
+
 
 @register_layer("snow_effect", "effect")
 class SnowEffectLayer(BaseLayer):
@@ -72,11 +75,12 @@ class SnowEffectLayer(BaseLayer):
         self.num_snowflakes: int = 100  # Increased density: more snowflakes.
         self.snowflakes: List[Dict[str, any]] = []
         self.persistent = True  # Mark this layer as persistent to maintain state across scenes.
+
         for _ in range(self.num_snowflakes):
             snowflake = {
                 "x": random.uniform(0, self.config.screen_width),
                 "y": random.uniform(0, self.config.screen_height),
-                "size": random.uniform(4, 8),  # Larger size range.
+                "size": random.uniform(4, 8),   # Larger size range.
                 "speed": random.uniform(20, 40),  # Increased speed range.
                 "drift": random.uniform(-0.5, 0.5)  # Horizontal drift.
             }
@@ -106,7 +110,8 @@ class SnowEffectLayer(BaseLayer):
         Parameters:
             screen (pygame.Surface): The surface on which to draw the snow effect.
         """
-        snow_color = (255, 255, 255)
+        # Use the theme's snow color
+        snow_color = self.config.theme.snow_color
         for flake in self.snowflakes:
             x = int(flake["x"])
             y = int(flake["y"])
