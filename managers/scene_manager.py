@@ -1,9 +1,9 @@
 """
-scene_manager.py - Scene manager for handling scene transitions, maintaining history for back navigation, and centralized input.
-Version: 1.1.4
-Summary: Manages scenes, handles transitions, maintains a scene history for back navigation, and centralizes input dispatch.
-         Now pressing Q/Esc will return to the previous scene (if available) rather than always going to the home scene.
-         Back navigation is implemented using a push_history parameter to prevent cycling back to the same scene.
+scene_manager.py - Scene manager for handling scene transitions, back navigation, and centralized input.
+Version: 1.1.6
+Summary: Manages scenes and transitions. Adds a global directional control layer via the plugin system,
+         ensuring that all scenes use a unified input method. The directional control is enabled/disabled
+         by its plugin registration.
 """
 
 import pygame
@@ -11,17 +11,14 @@ from typing import Dict, Optional
 from core.config import Config
 from managers.input_manager import InputManager
 from scenes.base_scene import BaseScene
-from plugins.plugins import transition_registry
+from plugins.plugins import transition_registry, layer_registry
 from transitions.transitions import Transition  # For proper type annotation
 
 class SceneManager:
-    """
-    Manages scenes, handles transitions, maintains a scene history for back navigation, and centralizes input dispatch.
-    """
     def __init__(self, config: Config, input_manager: InputManager) -> None:
         """
-        Initializes the SceneManager with the provided configuration and input manager.
-        Version: 1.1.4
+        scene_manager.py - Initializes the SceneManager.
+        Version: 1.1.6
         """
         self.config: Config = config
         self.input_manager: InputManager = input_manager
@@ -34,25 +31,24 @@ class SceneManager:
 
     def add_scene(self, name: str, scene: BaseScene) -> None:
         """
-        Registers a scene with a given name.
-        Version: 1.1.4
+        scene_manager.py - Registers a scene with a given name.
+        Version: 1.1.5
         """
         self.scenes[name] = scene
 
     def set_scene(self, name: str, transition_type: Optional[str] = None, duration: float = 1.0, push_history: bool = True) -> None:
         """
-        Sets the active scene. Relies on the scene's on_enter() method to populate layers dynamically.
-        Version: 1.1.4
-        Summary: When switching scenes normally, pushes the current scene key to history. When back navigating,
-                 push_history should be False so that the current scene is not re-added.
+        scene_manager.py - Sets the active scene.
+        Version: 1.1.5
+        Summary: Switches scenes (pushing the current scene key to history when appropriate) and populates the new scene.
+                 Additionally, if global controls are enabled, adds the directional button layer via the plugin system.
         """
         if name not in self.scenes:
             return
 
         new_scene = self.scenes[name]
-        new_scene.on_enter()  # on_enter() will perform dynamic initialization (including populate_layers)
+        new_scene.on_enter()  # Scene populates its layers
 
-        # Only push current scene key if desired.
         if push_history and self.current_scene_key is not None:
             self.history.append(self.current_scene_key)
 
@@ -72,10 +68,36 @@ class SceneManager:
             self.current_scene = new_scene
             self.current_scene_key = name
 
+        # --- Add global directional control layer via plugin system if enabled ---
+        if self.config.enable_global_controls:
+            if "directional_button_layer" in layer_registry:
+                directional_cls = layer_registry["directional_button_layer"]["class"]
+                def global_callback(direction: str, pressed: bool):
+                    mapping = {
+                        "up": pygame.K_w,
+                        "down": pygame.K_s,
+                        "left": pygame.K_a,
+                        "right": pygame.K_d,
+                        "A": pygame.K_RETURN,
+                        "B": pygame.K_q
+                    }
+                    # Generate KEYDOWN if pressed, KEYUP if released
+                    fake_event_type = pygame.KEYDOWN if pressed else pygame.KEYUP
+                    fake_event = pygame.event.Event(fake_event_type, key=mapping[direction])
+                    if mapping[direction] in self.config.global_input_keys:
+                        self.on_global_input(fake_event)
+                    else:
+                        self.current_scene.on_input(fake_event)
+                global_layer = directional_cls(self.current_scene.font, self.config, global_callback)
+                global_layer.z = 999  # Ensure the layer is drawn on top.
+                self.current_scene.layer_manager.add_layer(global_layer)
+            else:
+                print("Global directional control layer plugin not registered; skipping global directional layer.")
+
     def update(self, dt: float = None) -> None:
         """
-        Updates the current scene or active transition based on the elapsed time.
-        Version: 1.1.4
+        scene_manager.py - Updates the current scene or active transition.
+        Version: 1.1.5
         """
         if dt is None:
             dt = 1.0 / self.config.fps
@@ -89,8 +111,8 @@ class SceneManager:
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Draws the current scene or active transition onto the provided screen.
-        Version: 1.1.4
+        scene_manager.py - Draws the current scene or active transition.
+        Version: 1.1.5
         """
         if self.transition:
             self.transition.draw(screen)
@@ -99,22 +121,20 @@ class SceneManager:
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Forwards input events to the current scene regardless of an active transition.
-        Version: 1.1.4
+        scene_manager.py - Forwards input events to the current scene.
+        Version: 1.1.5
         """
         if self.current_scene:
             self.current_scene.on_input(event)
 
     def on_global_input(self, event: pygame.event.Event) -> None:
         """
-        Handles global input events by returning to the previous scene if available.
-        Version: 1.1.4
-        Summary: Pressing Q/Esc will pop the last scene from history and set it as current without pushing the current scene onto history.
-                 For example, if in Play scene, pressing Q goes to Game Mode Selection; pressing Q again goes to Home.
+        scene_manager.py - Handles global input events (e.g., Q/Esc for back navigation).
+        Version: 1.1.5
+        Summary: Pops the last scene from history and sets it as current without pushing the current scene again.
         """
         if self.history:
             previous_scene = self.history.pop()
             self.set_scene(previous_scene, push_history=False)
         else:
-            # Fallback if no history, return to home scene.
             self.set_scene("menu", push_history=False)
