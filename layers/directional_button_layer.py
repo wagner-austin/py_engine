@@ -1,8 +1,8 @@
 """
 directional_button_layer.py - Provides a directional button layer for game area control,
 which maps directional input (up, down, left, right) and action buttons (A, B) to simulate
-key down and key up events, similar to a Gameboy controller.
-Version: 1.3.8
+key down events for game mapping while using key up events solely for updating highlight selection.
+Version: 1.3.11
 """
 
 import pygame
@@ -18,11 +18,12 @@ class DirectionalButtonLayer(BaseLayer):
         """
         directional_button_layer.py - Initializes the DirectionalButtonLayer.
         Provides on-screen directional and action buttons with unified input handling.
-        Version: 1.3.8
+        Game mapping is triggered only on key down events.
+        Version: 1.3.11
         Parameters:
             font (pygame.font.Font): The font used for rendering labels on buttons.
             config (Config): The global configuration object.
-            callback (Callable[[str, bool], None]): A function called when a button is pressed or released.
+            callback (Callable[[str, bool], None]): A function called when a button is pressed (key down).
         """
         self.font = font
         self.config = config
@@ -106,17 +107,39 @@ class DirectionalButtonLayer(BaseLayer):
         # Define hit inflation factor (20% larger hit area).
         self.hit_inflation = 0.2
 
+    def _handle_keydown(self, event: pygame.event.Event, key_const: int, button_id: str, state_dict: dict) -> bool:
+        """
+        Helper method for handling KEYDOWN events.
+        Checks if the button is not already pressed before updating state and calling the callback.
+        """
+        if event.key == key_const and not state_dict[button_id]:
+            state_dict[button_id] = True
+            self.callback(button_id, True)
+            return True
+        return False
+
+    def _handle_keyup(self, event: pygame.event.Event, key_const: int, button_id: str, state_dict: dict) -> bool:
+        """
+        Helper method for handling KEYUP events.
+        Updates the button state to False for highlight selection purposes but does not trigger the callback.
+        """
+        if event.key == key_const and state_dict[button_id]:
+            state_dict[button_id] = False
+            # Do not call callback on key up for game mapping.
+            return True
+        return False
+
     def update(self, dt: float) -> None:
         """
         directional_button_layer.py - Update method (no periodic updates needed for static pad).
-        Version: 1.3.8
+        Version: 1.3.11
         """
         pass
 
     def draw(self, screen: pygame.Surface) -> None:
         """
         directional_button_layer.py - Draws the directional and action buttons.
-        Version: 1.3.8
+        Version: 1.3.11
         """
         for direction, rect in self.buttons.items():
             color = self.config.theme.button_selected_color if self.pressed[direction] else self.config.theme.button_normal_color
@@ -130,8 +153,8 @@ class DirectionalButtonLayer(BaseLayer):
     def on_input(self, event: pygame.event.Event) -> bool:
         """
         directional_button_layer.py - Handles input events for touch and key interactions.
-        Supports MOUSEBUTTON events as well as KEYDOWN/KEYUP for unified control.
-        Version: 1.3.8
+        Supports MOUSEBUTTON events and KEYDOWN (for mapping) plus KEYUP solely for updating highlight selection.
+        Version: 1.3.11
         Returns: True if the event was handled, False otherwise.
         """
         handled = False
@@ -149,9 +172,8 @@ class DirectionalButtonLayer(BaseLayer):
                             handled = True
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if self.pressed[direction]:
-                        # Release regardless of pointer position
                         self.pressed[direction] = False
-                        self.callback(direction, False)
+                        # Do not trigger callback on mouse up; only update state.
                         handled = True
             # Process action buttons with increased effective radius
             for key, info in self.action_buttons.items():
@@ -168,75 +190,29 @@ class DirectionalButtonLayer(BaseLayer):
                             handled = True
                 elif event.type == pygame.MOUSEBUTTONUP:
                     if self.action_pressed[key]:
-                        # Unconditionally release the action button
                         self.action_pressed[key] = False
-                        self.callback(key, False)
+                        # Do not trigger callback on mouse up.
                         handled = True
             if handled:
                 return True
+
         # Handle keyboard events for unified control
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                if not self.pressed["up"]:
-                    self.pressed["up"] = True
-                    self.callback("up", True)
-                    handled = True
-            if event.key == pygame.K_s:
-                if not self.pressed["down"]:
-                    self.pressed["down"] = True
-                    self.callback("down", True)
-                    handled = True
-            if event.key == pygame.K_a:
-                if not self.pressed["left"]:
-                    self.pressed["left"] = True
-                    self.callback("left", True)
-                    handled = True
-            if event.key == pygame.K_d:
-                if not self.pressed["right"]:
-                    self.pressed["right"] = True
-                    self.callback("right", True)
-                    handled = True
-            if event.key == pygame.K_RETURN:
-                if not self.action_pressed["A"]:
-                    self.action_pressed["A"] = True
-                    self.callback("A", True)
-                    handled = True
-            if event.key == pygame.K_q:
-                if not self.action_pressed["B"]:
-                    self.action_pressed["B"] = True
-                    self.callback("B", True)
-                    handled = True
+            handled |= self._handle_keydown(event, pygame.K_w, "up", self.pressed)
+            handled |= self._handle_keydown(event, pygame.K_a, "left", self.pressed)
+            handled |= self._handle_keydown(event, pygame.K_s, "down", self.pressed)
+            handled |= self._handle_keydown(event, pygame.K_d, "right", self.pressed)
+            handled |= self._handle_keydown(event, pygame.K_SPACE, "A", self.action_pressed)
+            handled |= self._handle_keydown(event, pygame.K_q, "B", self.action_pressed)
             return handled
+
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_w:
-                if self.pressed["up"]:
-                    self.pressed["up"] = False
-                    self.callback("up", False)
-                    handled = True
-            if event.key == pygame.K_s:
-                if self.pressed["down"]:
-                    self.pressed["down"] = False
-                    self.callback("down", False)
-                    handled = True
-            if event.key == pygame.K_a:
-                if self.pressed["left"]:
-                    self.pressed["left"] = False
-                    self.callback("left", False)
-                    handled = True
-            if event.key == pygame.K_d:
-                if self.pressed["right"]:
-                    self.pressed["right"] = False
-                    self.callback("right", False)
-                    handled = True
-            if event.key == pygame.K_RETURN:
-                if self.action_pressed["A"]:
-                    self.action_pressed["A"] = False
-                    self.callback("A", False)
-                    handled = True
-            if event.key == pygame.K_q:
-                if self.action_pressed["B"]:
-                    self.action_pressed["B"] = False
-                    self.callback("B", False)
-                    handled = True
+            handled |= self._handle_keyup(event, pygame.K_w, "up", self.pressed)
+            handled |= self._handle_keyup(event, pygame.K_a, "left", self.pressed)
+            handled |= self._handle_keyup(event, pygame.K_s, "down", self.pressed)
+            handled |= self._handle_keyup(event, pygame.K_d, "right", self.pressed)
+            handled |= self._handle_keyup(event, pygame.K_SPACE, "A", self.action_pressed)
+            handled |= self._handle_keyup(event, pygame.K_q, "B", self.action_pressed)
             return handled
+
         return False
