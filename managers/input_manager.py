@@ -1,6 +1,10 @@
 """
-input_manager.py - Provides a dedicated InputManager for handling and dispatching input events.
-Version: 1.4.1
+input_manager.py - Provides a dedicated InputManager for handling and dispatching input events using a clean pipeline.
+Version: 1.4.2
+Summary: Processes events in a prioritized order:
+         1. Global input handlers (IGlobalInputHandler) are given first chance.
+         2. Then, regular input handlers (IInputHandler) are invoked.
+         If any handler returns True (indicating the event is consumed), further processing is halted.
 """
 
 import pygame
@@ -9,64 +13,58 @@ from pygame.event import Event
 from core.interfaces import IInputHandler, IGlobalInputHandler
 from core.config import Config
 
-# Define a union type for handlers that might implement either or both interfaces.
+# Union type for handlers that may implement either interface.
 InputHandlerType = Union[IInputHandler, IGlobalInputHandler]
 
 class InputManager:
     def __init__(self, config: Config) -> None:
         """
         Initializes the InputManager with a configuration and an empty list of handlers.
-        
+        Version: 1.4.2
         Parameters:
             config: Global configuration object.
         """
         self.config = config
-        self.handlers: List[InputHandlerType] = []  # Registered event handlers
+        self.handlers: List[InputHandlerType] = []
 
     def register_handler(self, handler: InputHandlerType) -> None:
         """
-        Registers an event handler if it is not already registered.
-        
-        Parameters:
-            handler: An object implementing IInputHandler or IGlobalInputHandler.
+        Registers an event handler if not already registered.
         """
         if handler not in self.handlers:
             self.handlers.append(handler)
 
     def unregister_handler(self, handler: InputHandlerType) -> None:
         """
-        Unregisters an event handler if it is currently registered.
-        
-        Parameters:
-            handler: The event handler to unregister.
+        Unregisters an event handler.
         """
         if handler in self.handlers:
             self.handlers.remove(handler)
 
     def process_event(self, event: Event) -> None:
         """
-        Processes a single pygame event.
-        
-        This method now processes KEYDOWN and mouse events (MOUSEBUTTONDOWN, MOUSEBUTTONUP, and MOUSEMOTION)
-        for input dispatch. Global key events (such as Escape or Q) are processed and dispatched exclusively to
-        handlers implementing IGlobalInputHandler. All other events are dispatched to handlers implementing IInputHandler.
-        
+        Processes a single pygame event using a prioritized pipeline:
+          1. For KEYDOWN events, dispatch to global input handlers (IGlobalInputHandler) first.
+             If any handler returns True, the event is consumed.
+          2. Then dispatch to regular input handlers (IInputHandler) until one consumes it.
+          3. For mouse events (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION), dispatch similarly.
+        Version: 1.4.2
         Parameters:
             event: The pygame event to process.
         """
-        # Do not automatically re-enable text input on MOUSEBUTTONDOWN to prevent keyboard popup.
-        # Dispatch KEYDOWN events.
         if event.type == pygame.KEYDOWN:
-            if event.key in self.config.global_input_keys:
-                for handler in self.handlers:
-                    if isinstance(handler, IGlobalInputHandler):
-                        handler.on_global_input(event)
-                return
+            # First, try global input handlers.
+            for handler in self.handlers:
+                if isinstance(handler, IGlobalInputHandler):
+                    if handler.on_global_input(event):
+                        return
+            # Then, try regular input handlers.
             for handler in self.handlers:
                 if isinstance(handler, IInputHandler):
-                    handler.on_input(event)
-        # Dispatch mouse events.
+                    if handler.on_input(event):
+                        return
         elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
             for handler in self.handlers:
                 if isinstance(handler, IInputHandler):
-                    handler.on_input(event)
+                    if handler.on_input(event):
+                        return

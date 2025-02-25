@@ -2,8 +2,7 @@
 scene_manager.py - Scene manager for handling scene transitions, back navigation, and centralized input.
 Version: 1.1.6
 Summary: Manages scenes and transitions. Adds a global directional control layer via the plugin system,
-         ensuring that all scenes use a unified input method. The directional control is enabled/disabled
-         by its plugin registration.
+         ensuring that all scenes use a unified input method.
 """
 
 import pygame
@@ -84,7 +83,10 @@ class SceneManager:
                     # Generate KEYDOWN if pressed, KEYUP if released
                     fake_event_type = pygame.KEYDOWN if pressed else pygame.KEYUP
                     fake_event = pygame.event.Event(fake_event_type, key=mapping[direction])
-                    if mapping[direction] in self.config.global_input_keys:
+                    # For "B", always treat as a global back event regardless of global input keys.
+                    if direction == "B" and pressed:
+                        self.on_global_input(fake_event)
+                    elif mapping[direction] in self.config.global_input_keys:
                         self.on_global_input(fake_event)
                     else:
                         self.current_scene.on_input(fake_event)

@@ -1,7 +1,13 @@
+"""
+core/controls.py - Defines global input keys and menu navigation keys.
+Version: 1.0.0
+"""
+
 import pygame
 
 # Global keys that trigger global input handling
-GLOBAL_INPUT_KEYS = (pygame.K_ESCAPE, pygame.K_q)
+# Removed pygame.K_q so that the Q key (mapped to "B") is handled by individual scenes.
+GLOBAL_INPUT_KEYS = (pygame.K_ESCAPE,)
 
 # Menu navigation keys
 MENU_NAVIGATION = {
