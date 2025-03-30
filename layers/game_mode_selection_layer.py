@@ -1,5 +1,5 @@
 """
-game_mode_selection_layer.py - Provides a selection layer for choosing game modes.
+layers/game_mode_selection_layer.py - Provides a selection layer for choosing game modes.
 Version: 1.0.3
 """
 
@@ -10,7 +10,6 @@ from plugins.plugins import play_mode_registry
 from core.config import Config
 from typing import List
 from ui.layout_constants import LayerZIndex, ButtonLayout, TitleLayout
-from core.controls import MENU_NAVIGATION
 from managers.scene_manager import SceneManager
 
 class GameModeSelectionLayer(BaseLayer):
@@ -104,19 +103,15 @@ class GameModeSelectionLayer(BaseLayer):
         title_x = (self.config.screen_width - title_surface.get_width()) // 2
         screen.blit(title_surface, (title_x, TitleLayout.Y_OFFSET))
         for i, button in enumerate(self.buttons):
-            selected = (i == self.selected_index)
-            button.draw(screen, selected)
+            # Selection is now handled via mouse clicks; visual selection state is not updated here.
+            button.draw(screen, False)
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Handles keyboard input for navigating the selection.
+        Handles mouse/touch input.
+        Keyboard navigation has been removed.
         Version: 1.0.3
         """
-        if event.type == pygame.KEYDOWN:
-            if event.key == MENU_NAVIGATION["up"]:
-                self.selected_index = (self.selected_index - 1) % len(self.buttons)
-            elif event.key == MENU_NAVIGATION["down"]:
-                self.selected_index = (self.selected_index + 1) % len(self.buttons)
-            elif event.key in MENU_NAVIGATION["select"]:
-                self.buttons[self.selected_index].callback()
-            self.parent_scene.last_selection_index = self.selected_index
+        pass
+
+# End of layers/game_mode_selection_layer.py

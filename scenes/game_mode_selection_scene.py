@@ -1,6 +1,7 @@
 """
-game_mode_selection_scene.py - Scene for selecting a game mode using a plug-and-play particle effect.
+scenes/game_mode_selection_scene.py - Scene for selecting a game mode using a plug-and-play particle effect.
 Version: 1.0.2
+Summary: Removed keyboard-based navigation; now uses mouse/touch input exclusively.
 """
 
 import pygame
@@ -21,7 +22,6 @@ class GameModeSelectionScene(BaseScene):
         extra_layers = []
         super().__init__("GameModeSelection", config, font, layer_manager, extra_layers)
         self.scene_manager = scene_manager
-        self.last_selection_index = 0
 
     def on_enter(self) -> None:
         """
@@ -34,8 +34,7 @@ class GameModeSelectionScene(BaseScene):
             self.config,
             self.layer_manager,
             self.scene_manager,
-            parent_scene=self,
-            initial_selected_index=self.last_selection_index
+            parent_scene=self
         )
         self.layer_manager.add_layer(selection_layer)
 
@@ -45,3 +44,5 @@ class GameModeSelectionScene(BaseScene):
             self.layer_manager.add_layer(particle_layer_instance)
 
         print("Entered Game Mode Selection Scene")
+
+# End of scenes/game_mode_selection_scene.py

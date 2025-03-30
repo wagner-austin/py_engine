@@ -1,5 +1,5 @@
 """
-theme_selection_layer.py - Provides a layer for selecting and modifying the application theme.
+layers/theme_selection_layer.py - Provides a layer for selecting and modifying the application theme.
 Version: 1.0.9 (highlight index persistence fix)
 """
 
@@ -10,7 +10,6 @@ from plugins.plugins import theme_registry
 from core.config import Config
 from typing import List, Optional, Callable, Tuple
 from ui.layout_constants import LayerZIndex, ButtonLayout, TitleLayout
-from core.controls import MENU_NAVIGATION
 from themes.themes import Theme, blend_themes
 
 
@@ -147,21 +146,4 @@ class ThemeSelectionLayer(BaseLayer):
             selected = (i == self.selected_index)
             button.draw(screen, selected)
 
-    def on_input(self, event: pygame.event.Event) -> None:
-        """
-        Handles keyboard input for navigating the theme selection.
-        Version: 1.0.9
-
-        We also update parent_scene.last_theme_index whenever
-        we move up/down, ensuring that after scene refresh,
-        our highlight index remains where the user last set it.
-        """
-        if event.type == pygame.KEYDOWN:
-            if event.key == MENU_NAVIGATION["up"]:
-                self.selected_index = (self.selected_index - 1) % len(self.buttons)
-                self.parent_scene.last_theme_index = self.selected_index
-            elif event.key == MENU_NAVIGATION["down"]:
-                self.selected_index = (self.selected_index + 1) % len(self.buttons)
-                self.parent_scene.last_theme_index = self.selected_index
-            elif event.key in MENU_NAVIGATION["select"]:
-                self.buttons[self.selected_index].callback()
+# End of layers/theme_selection_layer.py

@@ -1,7 +1,7 @@
 """
-play_scene.py - Dynamic Play scene supporting plug-and-play integration of different game modes.
+scenes/play_scene.py - Dynamic Play scene supporting plug-and-play integration of different game modes.
+Summary: Uses a dedicated PlayAreaLayer for hosting game modes within a defined area via mouse/touch-based interactions.
 Version: 1.2.3
-Summary: Upgraded PlayScene to use a dedicated PlayAreaLayer for hosting game modes within a defined area.
 """
 
 import pygame
@@ -23,9 +23,9 @@ class PlayScene(BaseScene):
 
     def on_enter(self) -> None:
         """
-        Called when the PlayScene becomes active.
+        play_scene.py - Called when the PlayScene becomes active.
         Version: 1.2.3
-        Summary: Clears the scene and adds a dedicated PlayAreaLayer to host game modes.
+        Summary: Clears the scene and adds a dedicated PlayAreaLayer to host game modes using mouse/touch interactions.
         """
         super().on_enter()
         from layers.play_area_layer import PlayAreaLayer
@@ -33,3 +33,5 @@ class PlayScene(BaseScene):
         play_area_layer = PlayAreaLayer(self.font, self.config, self.layer_manager, game_key=self.config.selected_game_mode)
         self.layer_manager.add_layer(play_area_layer)
         print("Entered Play Scene with dedicated play area layer.")
+
+# End of scenes/play_scene.py

@@ -1,7 +1,8 @@
 """
-interfaces.py - Defines explicit interfaces for event handlers.
-
+core/interfaces.py - Defines explicit interfaces for event handlers.
+--------------------------------------------------------------------------------
 Version: 1.0
+Summary: Provides the input handler interface using mouse/touch events.
 """
 
 from typing import Protocol, runtime_checkable
@@ -11,15 +12,8 @@ import pygame
 class IInputHandler(Protocol):
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Handle a general input event.
+        Handle a general input event via mouse/touch interactions.
         """
         ...
 
-@runtime_checkable
-class IGlobalInputHandler(Protocol):
-    def on_global_input(self, event: pygame.event.Event) -> None:
-        """
-        Handle global input events (e.g. Escape or Q) that should be caught
-        regardless of the current context.
-        """
-        ...
+# End of core/interfaces.py

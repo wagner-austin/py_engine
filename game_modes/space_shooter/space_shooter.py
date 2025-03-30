@@ -1,13 +1,12 @@
 """
-space_shooter.py
+game_modes/space_shooter/space_shooter.py
 --------------------------------------------------------------------------------
-A modular Space Shooter game mode with independent effects, adapted for short 
-thrust impulses and correct rotation directions on Android (KEYDOWN-only).
-Version: 1.4.0
+A modular Space Shooter game mode with independent effects, adapted for mouse/touch input.
+Version: 1.4.1
 Summary: 
-  1) Applies a short forward/reverse thrust impulse on W/S key presses. 
-  2) Adds the ship's velocity to projectile velocity on firing. 
-  3) Reverses rotation logic so A rotates left, D rotates right.
+  1) Applies short thrust impulses based on on-screen controls.
+  2) Adds the ship's velocity to projectile velocity on firing.
+  3) Rotation and thrust are triggered via mouse/touch events.
 """
 
 import math
@@ -19,29 +18,17 @@ from plugins.plugins import register_play_mode
 @register_play_mode("Space Shooter")
 class SpaceShooter:
     """
-    A plug-and-play "Space Shooter" mode adapted for KEYDOWN-only environments 
-    (e.g. Android). Press W or S to get a short thrust impulse forward or in reverse, 
-    press A/D to toggle rotation, and SPACE to fire projectiles inheriting current 
-    ship velocity.
+    A plug-and-play "Space Shooter" mode adapted for mouse/touch-only environments.
+    Use on-screen buttons to control rotation, thrust, and firing.
     """
-
-    # Unique dictionary of controls for Space Shooter (defined here for modularity)
-    SPACE_SHOOTER_KEYS = {
-        "rotate_left": pygame.K_a,
-        "rotate_right": pygame.K_d,
-        "thrust_forward": pygame.K_w,
-        "thrust_reverse": pygame.K_s,
-        "fire": pygame.K_SPACE,
-    }
 
     def __init__(self, font: pygame.font.Font, config: Config, layer_manager: LayerManager) -> None:
         """
         Initializes the SpaceShooter game mode with short thrust impulses.
-
         Parameters:
             font (pygame.font.Font): The font used to render on-screen text.
             config (Config): Global configuration object.
-            layer_manager (LayerManager): Manager for layered drawing (unused here but required).
+            layer_manager (LayerManager): Manager for layered drawing.
         """
         self.font = font
         self.config = config
@@ -52,7 +39,7 @@ class SpaceShooter:
         self.spaceship_vel = [0.0, 0.0]
         self.spaceship_angle = 0.0
 
-        # Toggle booleans for rotation
+        # Toggle booleans for rotation (controlled via on-screen buttons)
         self.rotating_left = False
         self.rotating_right = False
 
@@ -76,7 +63,6 @@ class SpaceShooter:
     def create_spaceship_surface(self) -> pygame.Surface:
         """
         Creates and returns a small triangular surface representing the spaceship.
-
         Returns:
             pygame.Surface: A surface with a yellow triangle (tip at the right).
         """
@@ -96,11 +82,10 @@ class SpaceShooter:
         """
         Updates the ship's position, handles continuous rotation, applies short thrust 
         while timers last, and updates bullets.
-
         Parameters:
             dt (float): Delta time in seconds since the last frame.
         """
-        # Rotation toggles: A => increase angle (turn left), D => decrease angle (turn right).
+        # Apply rotation if toggled via on-screen buttons
         if self.rotating_left and not self.rotating_right:
             self.spaceship_angle += self.ROTATION_SPEED * dt
         elif self.rotating_right and not self.rotating_left:
@@ -152,16 +137,14 @@ class SpaceShooter:
     def draw(self, screen: pygame.Surface) -> None:
         """
         Draws the rotated spaceship and active bullets, plus a mode label.
-
         Parameters:
             screen (pygame.Surface): The surface on which to draw.
         """
-        # Rotate the ship to the current angle
         rotated_ship = pygame.transform.rotate(self.spaceship_surface, self.spaceship_angle)
         ship_rect = rotated_ship.get_rect(center=(int(self.spaceship_pos[0]), int(self.spaceship_pos[1])))
         screen.blit(rotated_ship, ship_rect)
 
-        # Bullets (red circles)
+        # Draw bullets (red circles)
         for bullet in self.bullets:
             px, py = int(bullet["pos"][0]), int(bullet["pos"][1])
             pygame.draw.circle(screen, (255, 0, 0), (px, py), 5)
@@ -178,11 +161,9 @@ class SpaceShooter:
         rad = math.radians(self.spaceship_angle)
         vx = self.BULLET_SPEED * math.cos(rad)
         vy = -self.BULLET_SPEED * math.sin(rad)
-
         # Inherit current ship velocity
         vx += self.spaceship_vel[0]
         vy += self.spaceship_vel[1]
-
         bullet = {
             "pos": [self.spaceship_pos[0], self.spaceship_pos[1]],
             "vel": [vx, vy]
@@ -191,37 +172,12 @@ class SpaceShooter:
 
     def on_input(self, event: pygame.event.Event) -> None:
         """
-        Handles KEYDOWN events for toggling rotation (A/D) or applying short thrust (W/S), 
-        or firing a bullet.
-
+        Handles mouse/touch input events.
+        This method is a placeholder to be integrated with on-screen control callbacks.
         Parameters:
-            event (pygame.event.Event): A Pygame event, dispatched by the InputManager.
+            event (pygame.event.Event): A Pygame event, typically MOUSEBUTTONDOWN, MOUSEBUTTONUP, or MOUSEMOTION.
         """
-        if event.type == pygame.KEYDOWN:
-            if event.key == self.SPACE_SHOOTER_KEYS["fire"]:
-                self.fire()
+        # Keyboard events removed in favor of direct mouse/touch control callbacks.
+        pass
 
-            elif event.key == self.SPACE_SHOOTER_KEYS["rotate_left"]:
-                # Toggle rotating left
-                if self.rotating_left:
-                    self.rotating_left = False
-                else:
-                    # Ensure rotating_right is off if we switch direction
-                    self.rotating_right = False
-                    self.rotating_left = True
-
-            elif event.key == self.SPACE_SHOOTER_KEYS["rotate_right"]:
-                # Toggle rotating right
-                if self.rotating_right:
-                    self.rotating_right = False
-                else:
-                    self.rotating_left = False
-                    self.rotating_right = True
-
-            elif event.key == self.SPACE_SHOOTER_KEYS["thrust_forward"]:
-                # Apply a short forward impulse
-                self.thrust_timer_forward = self.THURST_DURATION
-
-            elif event.key == self.SPACE_SHOOTER_KEYS["thrust_reverse"]:
-                # Apply a short reverse impulse
-                self.thrust_timer_reverse = self.THURST_DURATION
+# End of game_modes/space_shooter/space_shooter.py

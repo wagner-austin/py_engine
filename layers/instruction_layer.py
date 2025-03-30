@@ -1,5 +1,5 @@
 """
-instruction_layer.py - Provides the instruction layer that displays on-screen instructions.
+layers/instruction_layer.py - Provides the instruction layer that displays on-screen instructions.
 Version: 1.2 (updated)
 """
 
@@ -10,7 +10,7 @@ from ui.layout_constants import LayerZIndex, InstructionLayout
 from core.config import Config
 from plugins.plugins import register_layer  # New import for universal layer registration
 
-#@register_layer("instruction", "foreground")
+@register_layer("instruction", "foreground")
 class InstructionLayer(BaseLayer):
     def __init__(self, font: pygame.font.Font, config: Config) -> None:
         """
@@ -23,7 +23,7 @@ class InstructionLayer(BaseLayer):
         self.z: int = LayerZIndex.INSTRUCTIONS
         self.font: pygame.font.Font = font
         self.config: Config = config
-        self.text: str = "Use W/S to navigate, Enter to select, Q/Esc to return."
+        self.text: str = "Click buttons to navigate and select options."  # Updated instruction text
         self.color: Any = self.config.theme.instruction_color
 
     def update(self, dt: float) -> None:
@@ -41,3 +41,5 @@ class InstructionLayer(BaseLayer):
         bottom_margin: int = self.config.scale_value(InstructionLayout.BOTTOM_MARGIN_PX)
         text_surface: pygame.Surface = self.font.render(self.text, True, self.config.theme.instruction_color)
         screen.blit(text_surface, (left_margin, self.config.screen_height - bottom_margin))
+
+# End of layers/instruction_layer.py

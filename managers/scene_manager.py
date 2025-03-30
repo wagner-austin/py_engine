@@ -1,8 +1,8 @@
 """
-scene_manager.py - Scene manager for handling scene transitions, back navigation, and centralized input.
+managers/scene_manager.py - Scene manager for handling scene transitions, back navigation, and centralized mouse/touch input.
 Version: 1.1.6
 Summary: Manages scenes and transitions. Adds a global directional control layer via the plugin system,
-         ensuring that all scenes use a unified input method.
+         ensuring that all scenes use a unified mouse/touch-based input method.
 """
 
 import pygame
@@ -58,11 +58,8 @@ class SceneManager:
             transition_creator = transition_registry.get(transition_type.lower())
             if transition_creator:
                 self.transition = transition_creator(self.current_scene, new_scene, self.config, duration)
-                self.current_scene = new_scene
-                self.current_scene_key = name
-            else:
-                self.current_scene = new_scene
-                self.current_scene_key = name
+            self.current_scene = new_scene
+            self.current_scene_key = name
         else:
             self.current_scene = new_scene
             self.current_scene_key = name
@@ -72,24 +69,18 @@ class SceneManager:
             if "directional_button_layer" in layer_registry:
                 directional_cls = layer_registry["directional_button_layer"]["class"]
                 def global_callback(direction: str, pressed: bool):
-                    mapping = {
-                        "up": pygame.K_w,
-                        "down": pygame.K_s,
-                        "left": pygame.K_a,
-                        "right": pygame.K_d,
-                        "A": pygame.K_RETURN,
-                        "B": pygame.K_q
-                    }
-                    # Generate KEYDOWN if pressed, KEYUP if released
-                    fake_event_type = pygame.KEYDOWN if pressed else pygame.KEYUP
-                    fake_event = pygame.event.Event(fake_event_type, key=mapping[direction])
-                    # For "B", always treat as a global back event regardless of global input keys.
+                    # Directly handle directional input via mouse/touch
                     if direction == "B" and pressed:
-                        self.on_global_input(fake_event)
-                    elif mapping[direction] in self.config.global_input_keys:
-                        self.on_global_input(fake_event)
+                        # Handle back navigation directly using a visible on-screen control
+                        if self.history:
+                            previous_scene = self.history.pop()
+                            self.set_scene(previous_scene, push_history=False)
+                        else:
+                            self.set_scene("menu", push_history=False)
                     else:
-                        self.current_scene.on_input(fake_event)
+                        # Forward the directional input to the current scene if it implements on_directional_input
+                        if self.current_scene and hasattr(self.current_scene, "on_directional_input"):
+                            self.current_scene.on_directional_input(direction, pressed)
                 global_layer = directional_cls(self.current_scene.font, self.config, global_callback)
                 global_layer.z = 999  # Ensure the layer is drawn on top.
                 self.current_scene.layer_manager.add_layer(global_layer)
@@ -129,14 +120,4 @@ class SceneManager:
         if self.current_scene:
             self.current_scene.on_input(event)
 
-    def on_global_input(self, event: pygame.event.Event) -> None:
-        """
-        scene_manager.py - Handles global input events (e.g., Q/Esc for back navigation).
-        Version: 1.1.5
-        Summary: Pops the last scene from history and sets it as current without pushing the current scene again.
-        """
-        if self.history:
-            previous_scene = self.history.pop()
-            self.set_scene(previous_scene, push_history=False)
-        else:
-            self.set_scene("menu", push_history=False)
+# End of managers/scene_manager.py

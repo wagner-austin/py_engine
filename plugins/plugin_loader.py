@@ -1,10 +1,7 @@
 """
-plugin_loader.py
-Version: 1.0 (Updated with debug print statements)
-
-Summary: Dynamically loads all modules in specified plugin packages so that any decorators
-         (and hence plugin registrations) are executed. Now prints out debug info for each
-         package and module loaded.
+plugins/plugin_loader.py - Dynamically loads all modules in specified plugin packages.
+Version: 1.0
+Summary: Updated with debug print statements for module loading.
 """
 
 import importlib
@@ -30,3 +27,5 @@ def load_all_plugins(packages: List[str]) -> None:
     for package_name in packages:
         #print(f"[Plugin Loader] Loading plugins from package: {package_name}")
         load_plugins_from_package(package_name)
+
+# End of plugins/plugin_loader.py

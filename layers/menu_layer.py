@@ -1,5 +1,5 @@
 """
-menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
+layers/menu_layer.py - Provides the interactive menu layer (title and buttons) for the main menu.
 Version: 2.13.2
 """
 
@@ -10,7 +10,6 @@ from .base_layer import BaseLayer
 from ui.layout_constants import ButtonLayout, TitleLayout, MenuLayout, LayerZIndex
 from managers.scene_manager import SceneManager
 from core.config import Config
-from core.controls import MENU_NAVIGATION
 from plugins.plugins import register_layer
 
 @register_layer("menu_layer", "menu_only")
@@ -108,25 +107,4 @@ class MenuLayer(BaseLayer):
             selected: bool = (i == self.selected_index)
             button.draw(screen, selected)
 
-    def on_input(self, event: pygame.event.Event) -> None:
-        """
-        Handles input events for menu navigation.
-        """
-        current_time: int = pygame.time.get_ticks()
-        if current_time - self.last_nav_time < self.debounce_interval:
-            return
-
-        if event.type == pygame.KEYDOWN:
-            self._process_navigation(event.key)
-            self.last_nav_time = current_time
-
-    def _process_navigation(self, key: int) -> None:
-        """
-        Processes navigation keys.
-        """
-        if key == MENU_NAVIGATION["up"]:
-            self.selected_index = (self.selected_index - 1) % len(self.buttons)
-        elif key == MENU_NAVIGATION["down"]:
-            self.selected_index = (self.selected_index + 1) % len(self.buttons)
-        elif key in MENU_NAVIGATION["select"]:
-            self.buttons[self.selected_index].callback()
+# End of layers/menu_layer.py

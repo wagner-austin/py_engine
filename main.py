@@ -1,9 +1,9 @@
 """
 main.py - Main entry point for the application.
+--------------------------------------------------------------------------------
 Version: 1.5.3
 Summary: Initializes pygame, loads plugins, creates managers, and registers scenes.
-         Now includes the Game Mode Selection scene to enable a Home -> Game Mode Selection ->
-         Play flow without modifying game mode modules. Automatically loads new game modes.
+         Now uses mouse/touch-only input for scene navigation and game control.
 """
 
 import pygame
@@ -29,7 +29,6 @@ load_all_plugins(PLUGIN_PACKAGES)
 # -----------------------------------------------------------------------------
 # Initialize pygame and update configuration.
 pygame.init()
-pygame.key.start_text_input()
 
 info = pygame.display.Info()
 initial_width = info.current_w
@@ -77,7 +76,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        else:
+        elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
             input_manager.process_event(event)
     scene_manager.update(dt)
     scene_manager.draw(screen)
@@ -85,3 +84,5 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+# End of main.py

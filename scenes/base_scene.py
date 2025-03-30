@@ -1,6 +1,6 @@
 """
-base_scene.py - Base scene class providing common functionality and input handling for all scenes.
-Version: 1.2.3 (Updated to propagate unhandled input events to lower layers)
+scenes/base_scene.py - Base scene class providing common functionality and input handling for all scenes.
+Summary: Updated to propagate unhandled input events to lower layers; now ignores keyboard events.
 """
 
 import pygame  
@@ -65,8 +65,11 @@ class BaseScene:
   
     def on_input(self, event: pygame.event.Event) -> None:  
         """  
-        Default input handling: Forwards the event to the highest z‑index layer that implements on_input.  
+        Default input handling: Ignores keyboard events and forwards mouse/touch events to the highest z‑index layer that implements on_input.  
         """  
+        # Ignore keyboard events
+        if event.type in (pygame.KEYDOWN, pygame.KEYUP):
+            return
         self.forward_input(event)  
   
     def forward_input(self, event: pygame.event.Event) -> None:  
@@ -116,3 +119,5 @@ class BaseScene:
         Repopulates the layers.  
         """  
         self.populate_layers()
+
+# End of scenes/base_scene.py

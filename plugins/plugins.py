@@ -1,5 +1,5 @@
 """
-plugins.py - Central plugin registries for scenes, layers, effects, themes, transitions, and play modes.
+plugins/plugins.py - Central plugin registries for scenes, layers, effects, themes, transitions, and play modes.
 Version: 1.3.3
 Summary: Added duplicate key checks in registration decorators to warn when duplicate registration is attempted.
 """
@@ -102,3 +102,5 @@ all = [
     "scene_registry", "layer_registry", "effect_registry", "theme_registry", "transition_registry", "play_mode_registry",
     "register_scene", "register_layer", "register_effect", "register_theme", "register_transition", "register_play_mode"
 ]
+
+# End of plugins/plugins.py

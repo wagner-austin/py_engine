@@ -1,25 +1,22 @@
 """
-input_manager.py - Provides a dedicated InputManager for handling and dispatching input events using a clean pipeline.
+managers/input_manager.py - Provides a dedicated InputManager for handling and dispatching mouse/touch events using a clean pipeline.
 Version: 1.4.2
-Summary: Processes events in a prioritized order:
-         1. Global input handlers (IGlobalInputHandler) are given first chance.
-         2. Then, regular input handlers (IInputHandler) are invoked.
-         If any handler returns True (indicating the event is consumed), further processing is halted.
+Summary: Processes events by dispatching only mouse events (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION).
 """
 
 import pygame
-from typing import List, Union
+from typing import List
 from pygame.event import Event
-from core.interfaces import IInputHandler, IGlobalInputHandler
+from core.interfaces import IInputHandler  # Removed IGlobalInputHandler as it does not exist.
 from core.config import Config
 
-# Union type for handlers that may implement either interface.
-InputHandlerType = Union[IInputHandler, IGlobalInputHandler]
+# Define the input handler type using only IInputHandler.
+InputHandlerType = IInputHandler
 
 class InputManager:
     def __init__(self, config: Config) -> None:
         """
-        Initializes the InputManager with a configuration and an empty list of handlers.
+        managers/input_manager.py - Initializes the InputManager with a configuration and an empty list of handlers.
         Version: 1.4.2
         Parameters:
             config: Global configuration object.
@@ -43,28 +40,15 @@ class InputManager:
 
     def process_event(self, event: Event) -> None:
         """
-        Processes a single pygame event using a prioritized pipeline:
-          1. For KEYDOWN events, dispatch to global input handlers (IGlobalInputHandler) first.
-             If any handler returns True, the event is consumed.
-          2. Then dispatch to regular input handlers (IInputHandler) until one consumes it.
-          3. For mouse events (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION), dispatch similarly.
+        Processes a single pygame event using a simplified pipeline:
+          - Only mouse events (MOUSEBUTTONDOWN, MOUSEBUTTONUP, MOUSEMOTION) are processed.
         Version: 1.4.2
         Parameters:
             event: The pygame event to process.
         """
-        if event.type == pygame.KEYDOWN:
-            # First, try global input handlers.
+        if event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
             for handler in self.handlers:
-                if isinstance(handler, IGlobalInputHandler):
-                    if handler.on_global_input(event):
-                        return
-            # Then, try regular input handlers.
-            for handler in self.handlers:
-                if isinstance(handler, IInputHandler):
-                    if handler.on_input(event):
-                        return
-        elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-            for handler in self.handlers:
-                if isinstance(handler, IInputHandler):
-                    if handler.on_input(event):
-                        return
+                if hasattr(handler, "on_input") and handler.on_input(event):
+                    return
+
+# End of managers/input_manager.py
